@@ -7,6 +7,8 @@ set(CMAKE_BUILD_TYPE Debug)
 add_subdirectory (third_party)
 add_subdirectory (src)
 
+set_property(DIRECTORY src PROPERTY CXX_STANDARD 20)
+
 set (MAKE_DIRECTORY bin)
 
 option(PACKAGE_TESTS "Build the tests" ON)
