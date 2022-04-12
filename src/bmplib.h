@@ -11,16 +11,9 @@ namespace bmplib {
 const uint16_t BMPmagic = 0x4D42;
 
 #pragma pack(push, 1)
-struct BmpFileHeader {
-  uint16_t fileFormat{BMPmagic};
-  uint32_t fileSize{0};
-  uint16_t reserved1{0};
-  uint16_t reserved2{0};
-  uint32_t pixelDataOffset{0};
-};
 
 struct BmpInfoHeader {
-  uint32_t size{0};
+  uint32_t size{sizeof(BmpInfoHeader)};
   int32_t width{0};
   int32_t height{0};
   uint16_t planes{1};
@@ -32,6 +25,15 @@ struct BmpInfoHeader {
   uint32_t colorPalette{0};
   uint32_t importantColors{0};
 };
+
+struct BmpFileHeader {
+  uint16_t fileFormat{BMPmagic};
+  uint32_t fileSize{0};
+  uint16_t reserved1{0};
+  uint16_t reserved2{0};
+  uint32_t pixelDataOffset{sizeof(BmpFileHeader) + sizeof(BmpInfoHeader)};
+};
+
 #pragma pack(pop)
 
 struct BmpImage {
@@ -40,7 +42,12 @@ struct BmpImage {
   // no color table included;
   std::vector<uint8_t> data;
 
+  BmpImage() {};
+  BmpImage(BmpFileHeader fh, BmpInfoHeader ih, std::vector<uint8_t> inData);
   void bmpRead(const char* filename);
+  void bmpWrite(const char* filename);
+  size_t getPxIndex(uint32_t y, uint32_t x, uint plane) const;
+  size_t getNumOfChannels() const;
   uint8_t& getRow(size_t n);
   void bmpPrint(void){};
 };
