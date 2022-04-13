@@ -42,7 +42,7 @@ struct BmpImage {
   // no color table included;
   std::vector<uint8_t> data;
 
-  BmpImage() {};
+  BmpImage(){};
   BmpImage(BmpFileHeader fh, BmpInfoHeader ih, std::vector<uint8_t> inData);
   void bmpRead(const char* filename);
   void bmpWrite(const char* filename);

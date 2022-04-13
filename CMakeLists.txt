@@ -20,4 +20,4 @@ if(PACKAGE_TESTS)
     add_test(NAME ansTest COMMAND ansTest)
 endif()
 
-
+include(CMakeLists_format.cmake)
