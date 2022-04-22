@@ -12,8 +12,8 @@ int main() {
 
   anslib::Image id(myBmp);
 
-  for (auto plane : id.dataPlanes) {
-    for (auto px : plane) {
+  for (const auto &plane : id.dataPlanes) {
+    for (const auto &px : plane) {
       std::cout << px + 0 << "\t";
     }
     std::cout << std::endl;

@@ -8,3 +8,5 @@ target_link_libraries(pg bmplib anslib)
 target_link_libraries(hist_pg bmplib anslib)
 
 add_compile_definitions(CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

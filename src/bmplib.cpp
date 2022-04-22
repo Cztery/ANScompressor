@@ -11,7 +11,7 @@ namespace anslib {
 namespace bmplib {
 
 BmpImage::BmpImage(BmpFileHeader fh, BmpInfoHeader ih,
-                   std::vector<uint8_t> inData)
+                   const std::vector<uint8_t> &inData)
     : fileHeader_(fh), infoHeader_(ih) {}
 
 void BmpImage::bmpRead(const char *filename) {
@@ -29,8 +29,8 @@ void BmpImage::bmpRead(const char *filename) {
   fileSize = f_img.tellg();
   f_img.seekg(0, std::ios::beg);
 
-  f_img.read((char *)&fileHeader_, sizeof(BmpFileHeader));
-  f_img.read((char *)&infoHeader_, sizeof(BmpInfoHeader));
+  f_img.read(reinterpret_cast<char *>(&fileHeader_), sizeof(BmpFileHeader));
+  f_img.read(reinterpret_cast<char *>(&infoHeader_), sizeof(BmpInfoHeader));
   // f_img.seekg(fileHeader_.pixelDataOffset);
 
   data.reserve(fileSize - f_img.tellg());
@@ -47,15 +47,15 @@ void BmpImage::bmpWrite(const char *filename) {
   if (!f_img.is_open()) {
     throw std::ios_base::failure("Could not open bitmap");
   }
-  if (f_img.write((char *)&fileHeader_, sizeof(BmpFileHeader)).rdstate() &
+  if (f_img.write(reinterpret_cast<char *>(&fileHeader_), sizeof(BmpFileHeader)).rdstate() &
       std::ofstream::badbit) {
     throw std::ios_base::failure("Could not write fileHeader to bitmap");
   }
-  if (f_img.write((char *)&infoHeader_, sizeof(BmpInfoHeader)).rdstate() &
+  if (f_img.write(reinterpret_cast<char *>(&infoHeader_), sizeof(BmpInfoHeader)).rdstate() &
       std::ofstream::badbit) {
     throw std::ios_base::failure("Could not write infoHeader to bitmap");
   }
-  if (f_img.write((char *)data.data(), data.size() * sizeof(char)).rdstate() &
+  if (f_img.write(reinterpret_cast<char *>(data.data()), data.size() * sizeof(char)).rdstate() &
       std::ofstream::badbit) {
     throw std::ios_base::failure("Could not write pixel data to bitmap");
   }
@@ -75,7 +75,6 @@ size_t BmpImage::getPxIndex(uint32_t y, uint32_t x, uint plane) const {
 size_t BmpImage::getNumOfChannels() const {
   switch (infoHeader_.compression) {
     case 0:
-      return 3;
     default:
       return 3;
   }
