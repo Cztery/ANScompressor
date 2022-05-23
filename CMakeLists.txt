@@ -2,7 +2,16 @@ cmake_minimum_required (VERSION 3.16.3)
 project (ANS_compressor)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_BUILD_TYPE Debug)
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE DEBUG)
+endif()
+
+add_compile_options(
+       -Wall -Werror -Wno-error=maybe-uninitialized
+       $<$<CONFIG:RELEASE>:-Ofast>
+       $<$<CONFIG:DEBUG>:-O0>
+       $<$<CONFIG:DEBUG>:-ggdb3>
+)
 
 add_subdirectory (third_party EXCLUDE_FROM_ALL)
 add_subdirectory (src)

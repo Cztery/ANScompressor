@@ -1,7 +1,7 @@
 # Download and unpack libraries at configure time
-set(PACKAGES googletest libpng)
+set(PACKAGES googletest libpng matplotlibcpp)
 foreach(package IN LISTS PACKAGES)
-  configure_file(CMakeLists_${package}.txt.in ${package}-download/CMakeLists.txt)
+  configure_file(CMakeLists_${package}.cmake ${package}-download/CMakeLists.txt)
   execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
     RESULT_VARIABLE result
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/third_party/${package}-download )

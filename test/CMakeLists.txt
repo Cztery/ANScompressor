@@ -3,13 +3,13 @@
 cmake_minimum_required (VERSION 3.16.3)
 find_package(Threads)
 
-add_executable(ansTest ansTest.cpp)
-add_dependencies(ansTest gtest)
+add_executable(bmpTest bmpTest.cpp)
+add_dependencies(bmpTest gtest)
 
-target_include_directories(ansTest PUBLIC ../src)
-target_link_libraries(ansTest gtest gtest_main pthread bmplib anslib)
+target_include_directories(bmpTest PUBLIC ../src)
+target_link_libraries(bmpTest gtest gtest_main pthread bmplib anslib)
 
-gtest_discover_tests(ansTest)
-add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} ansTest --output-on-failure DEPENDS ansTest)
+gtest_discover_tests(bmpTest)
+add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} bmpTest --output-on-failure DEPENDS bmpTest)
 
 add_compile_definitions(CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}")

@@ -17,8 +17,6 @@ BmpImage::BmpImage(BmpFileHeader fh, BmpInfoHeader ih,
 void BmpImage::bmpRead(const char *filename) {
   std::ifstream f_img(filename, std::ios::binary);
 
-  // std::cout << std::filesystem::current_path() << std::endl;
-  // std::cout << filename << std::endl;
   if (!f_img.is_open()) {
     throw std::ios_base::failure("Could not open bitmap");
   }
@@ -47,15 +45,20 @@ void BmpImage::bmpWrite(const char *filename) {
   if (!f_img.is_open()) {
     throw std::ios_base::failure("Could not open bitmap");
   }
-  if (f_img.write(reinterpret_cast<char *>(&fileHeader_), sizeof(BmpFileHeader)).rdstate() &
+  if (f_img.write(reinterpret_cast<char *>(&fileHeader_), sizeof(BmpFileHeader))
+          .rdstate() &
       std::ofstream::badbit) {
     throw std::ios_base::failure("Could not write fileHeader to bitmap");
   }
-  if (f_img.write(reinterpret_cast<char *>(&infoHeader_), sizeof(BmpInfoHeader)).rdstate() &
+  if (f_img.write(reinterpret_cast<char *>(&infoHeader_), sizeof(BmpInfoHeader))
+          .rdstate() &
       std::ofstream::badbit) {
     throw std::ios_base::failure("Could not write infoHeader to bitmap");
   }
-  if (f_img.write(reinterpret_cast<char *>(data.data()), data.size() * sizeof(char)).rdstate() &
+  if (f_img
+          .write(reinterpret_cast<char *>(data.data()),
+                 data.size() * sizeof(char))
+          .rdstate() &
       std::ofstream::badbit) {
     throw std::ios_base::failure("Could not write pixel data to bitmap");
   }

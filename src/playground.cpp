@@ -16,8 +16,10 @@ int main() {
     for (const auto &px : plane) {
       std::cout << px + 0 << "\t";
     }
-    std::cout << std::endl;
+    std::cout << '\n';
   }
+
+  std::cout << "current cxx standard : " << __cplusplus << '\n';
 
   return 1;
 }

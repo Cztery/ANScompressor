@@ -32,7 +32,7 @@ TEST(reading_bitmaps2, reading_file_header) {
   EXPECT_EQ(myBmp.fileHeader_.reserved2, 0);
   EXPECT_EQ(myBmp.fileHeader_.pixelDataOffset, 0x36);
 
-  EXPECT_EQ(myBmp.infoHeader_.size, 0x28);
+  EXPECT_EQ(myBmp.infoHeader_.DIBsize, 0x28);
   EXPECT_EQ(myBmp.infoHeader_.width, 0x5);
   EXPECT_EQ(myBmp.infoHeader_.height, 0x5);
   EXPECT_EQ(myBmp.infoHeader_.planes, 0x1);
