@@ -4,10 +4,11 @@
 #include <vector>
 
 #include "bmplib.h"
+#include "common.h"
 
 namespace anslib {
 
-bool shiftDClevel(std::vector<uint8_t> &inData);
+bool shiftDClevel(std::vector<AnsSymbol> &inData);
 
 class Image {
  public:
@@ -16,17 +17,22 @@ class Image {
   Image(const bmplib::BmpImage &img);
 
   // either RGB, YCoCg or single gray plane
-  std::vector<std::vector<uint8_t>> dataPlanes;
+  std::vector<std::vector<AnsSymbol>> dataPlanes;
   ushort bitD_ = 24;
   ushort numOfPlanes_ = 0;
 
-  std::tuple<uint8_t, uint8_t, uint8_t> operator[](int i) const {
+  std::tuple<AnsSymbol, AnsSymbol, AnsSymbol> operator[](int i) const {
     return std::make_tuple(dataPlanes.at(0).at(i), dataPlanes.at(1).at(i),
                            dataPlanes.at(2).at(i));
   }
-  // std::tuple<uint8_t, uint8_t, uint8_t> &operator [](int i) {return
-  // std::make_tuple(dataPlanes.at(0).at(i), dataPlanes.at(1).at(i),
-  // dataPlanes.at(2).at(i));}
+
+  std::vector<uint8_t> getPlanesAsBmpData();
+  void GBRtoYCbCr();
+};
+
+class CompImage : public Image {
+  CompImage(ushort bd, ushort planesNum) : Image(bd, planesNum) {}
+  CompImage(const bmplib::BmpImage &img) : Image(img) {}
 };
 
 }  // namespace anslib

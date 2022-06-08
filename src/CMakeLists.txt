@@ -6,13 +6,15 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_compile_definitions(CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
 add_library(bmplib bmplib.cpp)
-add_library(anslib ansComp.cpp)
+add_library(imglib image.cpp)
+add_library(complib compressor.cpp)
 
 add_executable(pg playground.cpp)
 add_executable(hist_pg playground_hist.cpp)
 
-target_link_libraries(pg PRIVATE bmplib anslib)
-target_link_libraries(hist_pg PRIVATE bmplib anslib python3.10)
+target_link_libraries(pg PRIVATE bmplib imglib)
+target_link_libraries(hist_pg PRIVATE bmplib imglib python3.10)
+target_link_libraries(complib imglib)
 target_include_directories(hist_pg PRIVATE /usr/include/python3.10 ${CMAKE_BINARY_DIR}/third_party/matplotlibcpp-src)
 
 include(CheckIPOSupported)

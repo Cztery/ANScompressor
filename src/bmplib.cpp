@@ -10,9 +10,19 @@
 namespace anslib {
 namespace bmplib {
 
+BmpImage::BmpImage(const char *filename) { bmpRead(filename); }
+
 BmpImage::BmpImage(BmpFileHeader fh, BmpInfoHeader ih,
                    const std::vector<uint8_t> &inData)
-    : fileHeader_(fh), infoHeader_(ih) {}
+    : fileHeader_(fh), infoHeader_(ih), data(inData) {
+      // add zero padding at the end of the file
+      // so the bmp file converted from Image obj
+      // matches original input bmp
+      size_t zeroPadding = fileHeader_.fileSize - sizeof(fileHeader_) - sizeof(infoHeader_) - data.size();
+      for (size_t i = 0; i < zeroPadding; ++i) {
+        data.push_back(0);
+      }
+    }
 
 void BmpImage::bmpRead(const char *filename) {
   std::ifstream f_img(filename, std::ios::binary);

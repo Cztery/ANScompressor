@@ -43,6 +43,7 @@ struct BmpImage {
   std::vector<uint8_t> data;
 
   BmpImage(){};
+  BmpImage(const char* filename);
   BmpImage(BmpFileHeader fh, BmpInfoHeader ih,
            const std::vector<uint8_t>& inData);
   void bmpRead(const char* filename);
