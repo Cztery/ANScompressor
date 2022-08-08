@@ -51,7 +51,6 @@ struct BmpImage {
   size_t getPxIndex(uint32_t y, uint32_t x, uint plane) const;
   size_t getNumOfChannels() const;
   uint8_t& getRow(size_t n);
-  void bmpPrint(void){};
 };
 
 inline std::ostream& operator<<(std::ostream& os, struct BmpFileHeader b) {

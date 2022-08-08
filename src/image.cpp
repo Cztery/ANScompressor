@@ -13,7 +13,7 @@ Image::Image(const bmplib::BmpImage &img) {
   switch (img.infoHeader_.compression) {
     case 0:  // no compression, R-G-B, three planes
       numOfPlanes_ = 3;
-      bitD_ = 24;
+      bitDepth_ = 24;
       break;
     default:
       throw std::runtime_error("unexpected compression type in bmp image");

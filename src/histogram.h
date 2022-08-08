@@ -1,3 +1,5 @@
+#pragma once
+
 #include <algorithm>
 #include <cassert>
 #include <iostream>
@@ -5,9 +7,12 @@
 #include <map>
 #include <vector>
 
+#include "common.h"
+
+namespace anslib {
 template <typename T>
 class Histogram {
-  typedef std::pair<T, uint32_t> pair;
+  typedef std::pair<T, AnsCountsType> pair;
 
   template <typename Z>
   void count_freqs(std::vector<Z> vec) {
@@ -17,37 +22,38 @@ class Histogram {
   }
 
   void count_cumul() {
-    assert(cumul.size() == counts.size()+1);
+    assert(cumul.size() == counts.size() + 1);
     assert(cumul.at(0) == 0);
     cumul.at(0) = 0;
     for (size_t i = 0; i < counts.size(); ++i) {
-      cumul.at(i+1) = cumul.at(i) + counts.at(i);
+      cumul.at(i + 1) = cumul.at(i) + counts.at(i);
     }
     total = cumul.back();
   }
 
-  // size_t check_sanity() {
-  //   for (size_t a = 1; a < cumul_norm.size() - 1; ++a) {
-  //     if (cumul_norm.at(a) > cumul_norm.at(a+1)) {
-  //       return a;
-  //     }
-  //   }
-  //   return 0;
-  // }
+  size_t count_max_count() {
+    size_t cur_max = 0;
+    for (auto c : counts) {
+      if (cur_max < c) {
+        cur_max = c;
+      }
+    }
+    return cur_max;
+  }
 
-public:
-  void norm_freqs(uint32_t target_total = (1u << 14)) {
+ public:
+  void norm_freqs(AnsCountsType target_total = PROB_SCALE) {
     // taken from ryg_ans
     cumul_norm = cumul;
     for (size_t i = 0; i <= counts.size(); ++i) {
-      cumul_norm[i] = ((uint64_t)target_total * cumul_norm[i])/total;
+      cumul_norm[i] = ((uint64_t)target_total * cumul_norm[i]) / total;
     }
     for (size_t i = 0; i <= cumul_norm.size(); i++) {
-      if(counts[i] && cumul_norm[i] == cumul_norm[i+1]) {
-        uint32_t best_freq = ~0u;
+      if (counts[i] && cumul_norm[i] == cumul_norm[i + 1]) {
+        AnsCountsType best_freq = ~0u;
         size_t best_steal_index = 0;
         for (size_t j = 0; j <= cumul_norm.size(); ++j) {
-          uint32_t freq = cumul_norm[j+1] - cumul_norm[j];
+          AnsCountsType freq = cumul_norm[j + 1] - cumul_norm[j];
           if (freq > 1 && freq < best_freq) {
             best_freq = freq;
             best_steal_index = j;
@@ -65,58 +71,40 @@ public:
         }
       }
     }
-    for(size_t i = 0; i < counts.size(); ++i) {
-      counts_norm.push_back(cumul_norm.at(i+1) - cumul_norm.at(i));
+    for (size_t i = 0; i < counts.size(); ++i) {
+      counts_norm.push_back(cumul_norm.at(i + 1) - cumul_norm.at(i));
     }
   }
 
   template <typename Y>
-  Histogram(std::vector<Y> vec)
+  Histogram(std::vector<Y> syms)
       : counts(std::numeric_limits<T>::max() + 1, 0),
         cumul(std::numeric_limits<T>::max() + 2, 0) {
-    count_freqs(vec);
+    count_freqs(syms);
+    count_cumul();
+    maxSymCount = count_max_count();
+  }
+
+  Histogram(std::vector<AnsCountsType> counts) : counts(counts), cumul(counts.size() + 1) {
     count_cumul();
   }
 
-  void sort_counts() {
-    auto comp = [](const pair &l, const pair &r) {
-      if (l.second != r.second) {
-        return l.second > r.second;
-      }
-      return l.first > r.first;
-    };
-
-    for (size_t i = 0; i < counts.size(); ++i) {
-      sorted.push_back(pair(i, counts.at(i)));
+  Histogram& operator=(Histogram&& other) {
+    if (this != &other) {
+      counts = std::move(other.counts);
+      counts_norm = std::move(other.counts_norm);
+      cumul = std::move(other.cumul_norm);
+      cumul_norm = std::move(other.cumul_norm);
+      total = std::move(other.total);
+      maxSymCount = std::move(other.maxSymCount);
     }
-    std::sort(sorted.begin(), sorted.end(), comp);
-    maxInMap = sorted[0].second;
+    return *this;
   }
 
-  void print(uint maxLines = 50, bool sort = true) {
-    const uint maxw = 50;
-    
-    if (sort) {
-      sort_counts();
-    } else {
-      maxInMap = *(std::max_element(counts.begin(), counts.end()));
-    }
-
-    float factor = maxInMap >= maxw ? (float)maxInMap / (float)maxw : 1.0;
-    std::cout << std::string(maxw, '-') << '\n';
-    for (auto m = sorted.begin();
-         m != sorted.end() && (std::distance(sorted.begin(), m) != maxLines);
-         ++m) {
-      std::cout << static_cast<unsigned>(m->first) << "\t| " << m->second
-                << "\t| " << std::string((int)((float)m->second / factor), '*')
-                << '\n';
-    }
-    std::cout << "total : " << total << '\n';
-  }
-
-  std::vector<T> counts, counts_norm;
-  std::vector<uint32_t> cumul, cumul_norm;
-  std::vector<pair> sorted;
+  std::vector<AnsCountsType> counts, counts_norm;
+  std::vector<AnsCountsType> cumul, cumul_norm;
   size_t total;
-  size_t maxInMap;
+  size_t maxSymCount;
 };
+
+}  // namespace anslib
