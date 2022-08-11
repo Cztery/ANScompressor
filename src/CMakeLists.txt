@@ -8,6 +8,7 @@ add_compile_definitions(CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 add_library(bmplib bmplib.cpp)
 add_library(imglib image.cpp)
 add_library(complib compressor.cpp)
+add_library(colorspaceslib colorspaces.cpp)
 
 add_executable(pg playground.cpp)
 add_executable(hist_pg playground_hist.cpp)
