@@ -13,8 +13,12 @@ bool shiftDClevel(std::vector<AnsSymbol> &inData);
 class Image {
  public:
   size_t width_, height_;
-  Image(ushort bd, ushort planesNum) : bitDepth_(bd), numOfPlanes_(planesNum) { ; }
+  Image(ushort bd, ushort planesNum);
   Image(const bmplib::BmpImage &img);
+  Image(const std::vector<AnsSymbol> p1,
+        const std::vector<AnsSymbol> p2,
+        const std::vector<AnsSymbol> p3,
+        size_t wid, size_t hei);
 
   // either RGB, YCoCg or single gray plane
   std::vector<std::vector<AnsSymbol>> dataPlanes;
