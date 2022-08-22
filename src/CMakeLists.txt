@@ -6,6 +6,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_compile_definitions(CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
 
 add_library(bmplib bmplib.cpp)
+add_library(ppmlib ppmlib.cpp)
 add_library(imglib image.cpp)
 add_library(complib compressor.cpp)
 add_library(colorspaceslib colorspaces.cpp)
@@ -20,6 +21,7 @@ target_compile_options(bench PRIVATE
 )
 
 target_link_libraries(pg PRIVATE bmplib imglib)
+target_link_libraries(imglib PRIVATE bmplib)
 target_link_libraries(hist_pg PRIVATE bmplib imglib python3.10)
 target_link_libraries(bench complib bmplib imglib)
 target_link_libraries(complib imglib)
