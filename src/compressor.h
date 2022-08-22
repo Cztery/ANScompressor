@@ -11,12 +11,13 @@ class AnsEncoder {
   std::vector<AnsSymbol> pixInRawChannel_;
   Histogram<AnsSymbol> hist_;
   AnsState encodeSym(const AnsSymbol s, const AnsState x);
-  AnsState renormState(const AnsState x, std::vector<uint8_t>& stateBuf,
+  AnsState renormState(const AnsState x, std::vector<uint8_t> &stateBuf,
                        const AnsSymbol s);
 
  public:
   AnsEncoder(std::vector<AnsSymbol> pixChannel);
-  AnsEncoder(std::vector<AnsSymbol> pixChannel, std::vector<AnsCountsType> &symCounts);
+  AnsEncoder(std::vector<AnsSymbol> pixChannel,
+             std::vector<AnsCountsType> &symCounts);
 
   std::vector<uint8_t> encodePlane(std::vector<AnsSymbol> rawPlane);
   std::vector<uint8_t> encodePlane();
@@ -27,7 +28,7 @@ class AnsDecoder {
   std::vector<uint8_t> ansInCompressedChannel_;
   Histogram<AnsSymbol> hist_;
   std::vector<AnsSymbol> cum2sym_;
-  void decodeSymAndAdvanceState(AnsState& x);
+  void decodeSymAndAdvanceState(AnsState &x);
   void countCum2sym();
 
  public:

@@ -48,7 +48,7 @@ struct BmpImage {
            const std::vector<uint8_t>& inData);
   void bmpRead(const char* filename);
   void bmpWrite(const char* filename);
-  size_t getPxIndex(uint32_t y, uint32_t x, uint plane) const;
+  size_t getPxIndex(uint32_t y, uint32_t x, uint32_t plane) const;
   size_t getNumOfChannels() const;
   uint8_t& getRow(size_t n);
 };

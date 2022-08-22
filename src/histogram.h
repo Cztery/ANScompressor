@@ -85,7 +85,8 @@ class Histogram {
     maxSymCount = count_max_count();
   }
 
-  Histogram(std::vector<AnsCountsType> counts) : counts(counts), cumul(counts.size() + 1) {
+  Histogram(std::vector<AnsCountsType> counts)
+      : counts(counts), cumul(counts.size() + 1) {
     count_cumul();
   }
 

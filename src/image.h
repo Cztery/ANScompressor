@@ -33,9 +33,4 @@ class Image {
   void GBRtoYCbCr();
 };
 
-class CompImage : public Image {
-  CompImage(ushort bd, ushort planesNum) : Image(bd, planesNum) {}
-  CompImage(const bmplib::BmpImage &img) : Image(img) {}
-};
-
 }  // namespace anslib

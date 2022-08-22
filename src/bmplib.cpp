@@ -15,14 +15,15 @@ BmpImage::BmpImage(const char *filename) { bmpRead(filename); }
 BmpImage::BmpImage(BmpFileHeader fh, BmpInfoHeader ih,
                    const std::vector<uint8_t> &inData)
     : fileHeader_(fh), infoHeader_(ih), data(inData) {
-      // add zero padding at the end of the file
-      // so the bmp file converted from Image obj
-      // matches original input bmp
-      size_t zeroPadding = fileHeader_.fileSize - sizeof(fileHeader_) - sizeof(infoHeader_) - data.size();
-      for (size_t i = 0; i < zeroPadding; ++i) {
-        data.push_back(0);
-      }
-    }
+  // add zero padding at the end of the file
+  // so the bmp file converted from Image obj
+  // matches original input bmp
+  size_t zeroPadding = fileHeader_.fileSize - sizeof(fileHeader_) -
+                       sizeof(infoHeader_) - data.size();
+  for (size_t i = 0; i < zeroPadding; ++i) {
+    data.push_back(0);
+  }
+}
 
 void BmpImage::bmpRead(const char *filename) {
   std::ifstream f_img(filename, std::ios::binary);
@@ -74,7 +75,7 @@ void BmpImage::bmpWrite(const char *filename) {
   }
 }
 
-size_t BmpImage::getPxIndex(uint32_t y, uint32_t x, uint plane) const {
+size_t BmpImage::getPxIndex(uint32_t y, uint32_t x, uint32_t plane) const {
   size_t numOfChannels = getNumOfChannels();
   const size_t rowPadding = infoHeader_.width * numOfChannels % 4
                                 ? 4 - (infoHeader_.width * numOfChannels % 4)

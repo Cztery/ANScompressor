@@ -40,14 +40,14 @@ Image::Image(const bmplib::BmpImage &img) {
   
 
 std::vector<uint8_t> Image::getPlanesAsBmpData() {
-  const size_t rowPadding = width_ * numOfPlanes_ % 4
-                                    ? 4 - (width_ * numOfPlanes_ % 4)
-                                    : 0;
-  std::vector<uint8_t> outData/*(height_ * width_ * numOfPlanes_ + height_ * rowPadding)*/;
+  const size_t rowPadding =
+      width_ * numOfPlanes_ % 4 ? 4 - (width_ * numOfPlanes_ % 4) : 0;
+  std::vector<uint8_t>
+      outData /*(height_ * width_ * numOfPlanes_ + height_ * rowPadding)*/;
 
-  auto addRowPadding = [rowPadding, &outData](){
+  auto addRowPadding = [rowPadding, &outData]() {
     for (size_t i = 0; i < rowPadding; ++i) {
-            outData.push_back(0);
+      outData.push_back(0);
     }
   };
 

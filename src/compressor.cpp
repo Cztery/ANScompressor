@@ -1,4 +1,5 @@
 #include "compressor.h"
+
 #include <iterator>
 namespace anslib {
 
@@ -31,21 +32,27 @@ std::vector<AnsSymbol> AnsDecoder::decodePlane(
     std::vector<uint8_t> compressedPlane) {
   std::vector<AnsSymbol> decoded_syms;
   // initialize ans state
-  AnsState cur_state = (AnsState)compressedPlane.back() << 24;  compressedPlane.pop_back();
-          cur_state |= (AnsState)compressedPlane.back() << 16;  compressedPlane.pop_back();
-          cur_state |= (AnsState)compressedPlane.back() << 8;   compressedPlane.pop_back();
-          cur_state |= (AnsState)compressedPlane.back();        compressedPlane.pop_back();
-          // cur_state |= (AnsState)compressedPlane.back() << 32; compressedPlane.pop_back();
-          // cur_state |= (AnsState)compressedPlane.back() << 40; compressedPlane.pop_back();
-          // cur_state |= (AnsState)compressedPlane.back() << 48; compressedPlane.pop_back();
-          // cur_state |= (AnsState)compressedPlane.back() << 56; compressedPlane.pop_back();
+  AnsState cur_state = (AnsState)compressedPlane.back() << 24;
+  compressedPlane.pop_back();
+  cur_state |= (AnsState)compressedPlane.back() << 16;
+  compressedPlane.pop_back();
+  cur_state |= (AnsState)compressedPlane.back() << 8;
+  compressedPlane.pop_back();
+  cur_state |= (AnsState)compressedPlane.back();
+  compressedPlane.pop_back();
+  // cur_state |= (AnsState)compressedPlane.back() << 32;
+  // compressedPlane.pop_back(); cur_state |= (AnsState)compressedPlane.back()
+  // << 40; compressedPlane.pop_back(); cur_state |=
+  // (AnsState)compressedPlane.back() << 48; compressedPlane.pop_back();
+  // cur_state |= (AnsState)compressedPlane.back() << 56;
+  // compressedPlane.pop_back();
   AnsSymbol cur_symbol;
   const uint32_t mask = PROB_SCALE - 1;
-  while(cur_state != ANS_SIGNATURE){
+  while (cur_state != ANS_SIGNATURE) {
     cur_symbol = cum2sym_.at(cur_state & mask);
     decoded_syms.push_back(cur_symbol);
-    cur_state = hist_.counts_norm.at(cur_symbol) * (cur_state >> PROB_BITS) + (cur_state & mask) -
-      hist_.cumul_norm.at(cur_symbol);
+    cur_state = hist_.counts_norm.at(cur_symbol) * (cur_state >> PROB_BITS) +
+                (cur_state & mask) - hist_.cumul_norm.at(cur_symbol);
     while (cur_state < STATE_LOWER_BOUND && !compressedPlane.empty()) {
       cur_state <<= 8;
       cur_state |= compressedPlane.back();
@@ -76,9 +83,12 @@ AnsState AnsEncoder::renormState(AnsState x, std::vector<uint8_t> &stateBuf,
                                  const AnsSymbol s) {
   // AnsState xMax =
   //     ((STATE_LOWER_BOUND >> PROB_BITS) << 8) * hist_.counts_norm.at(s);
-  auto needsRenorm = [&](){ return ((x >> (sizeof(AnsState) * 8 - PROB_BITS)) >= hist_.counts_norm.at(s));};
+  auto needsRenorm = [&]() {
+    return ((x >> (sizeof(AnsState) * 8 - PROB_BITS)) >=
+            hist_.counts_norm.at(s));
+  };
   while (needsRenorm()) {
-  // while (x >= xMax) {
+    // while (x >= xMax) {
     stateBuf.push_back(x & 0xff);
     x >>= 8;
   }
@@ -88,7 +98,8 @@ AnsState AnsEncoder::renormState(AnsState x, std::vector<uint8_t> &stateBuf,
 std::vector<uint8_t> AnsEncoder::encodePlane(std::vector<AnsSymbol> plane) {
   std::vector<uint8_t> encoded_states;
   AnsState xTmp = ANS_SIGNATURE;
-  for (std::vector<AnsSymbol>::reverse_iterator s = plane.rbegin(); s != plane.rend(); ++s) {
+  for (std::vector<AnsSymbol>::reverse_iterator s = plane.rbegin();
+       s != plane.rend(); ++s) {
     xTmp = renormState(xTmp, encoded_states, *s);
     xTmp = encodeSym(*s, xTmp);
   }
@@ -108,11 +119,11 @@ AnsEncoder::AnsEncoder(std::vector<AnsSymbol> pixChannel)
   hist_.norm_freqs();
 }
 
-AnsEncoder::AnsEncoder(std::vector<AnsSymbol> pixChannel, std::vector<AnsCountsType> &symCounts)
+AnsEncoder::AnsEncoder(std::vector<AnsSymbol> pixChannel,
+                       std::vector<AnsCountsType> &symCounts)
     : pixInRawChannel_(pixChannel), hist_(pixChannel) {
   hist_.norm_freqs();
   symCounts = hist_.counts_norm;
 }
-
 
 }  // namespace anslib
