@@ -23,7 +23,7 @@ target_compile_options(bench PRIVATE
 target_link_libraries(pg PRIVATE bmplib imglib)
 target_link_libraries(imglib PRIVATE bmplib)
 target_link_libraries(hist_pg PRIVATE bmplib imglib python3.10)
-target_link_libraries(bench complib bmplib imglib)
+target_link_libraries(bench complib bmplib ppmlib imglib)
 target_link_libraries(complib imglib)
 target_include_directories(hist_pg PRIVATE /usr/include/python3.10 ${CMAKE_BINARY_DIR}/third_party/matplotlibcpp-src)
 

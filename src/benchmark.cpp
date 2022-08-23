@@ -2,16 +2,18 @@
 
 #include <algorithm>
 #include <chrono>
+#include <fstream>
 
 #include "bmplib.h"
 #include "common.h"
 #include "compressor.h"
 #include "image.h"
+#include "ppmlib.h"
 
-std::vector<std::string> listAllBmpsInDir(const std::string dir_path) {
+std::vector<std::string> listAllImgsInDir(const std::string dir_path,
+                                          const std::string postfix) {
   std::vector<std::string> vec_of_filenames;
   for (const auto &entry : std::filesystem::directory_iterator(dir_path)) {
-    const std::string postfix = ".bmp";
     const std::string path = entry.path();
     if (path.find(postfix) == (path.size() - postfix.size())) {
       vec_of_filenames.push_back(entry.path());
@@ -34,25 +36,26 @@ std::vector<std::string> listAllBmpsInDir(const std::string dir_path) {
 }
 
 /*inline*/ void compressImage(anslib::Image inImg) {
-  for (auto &plane : inImg.dataPlanes) {
+  for (auto &plane : inImg.dataPlanes_) {
     std::vector<anslib::AnsCountsType> symCounts;
     compressPlane(plane, symCounts, plane);
-    inImg.symCountsIfCompressed.push_back(symCounts);
+    inImg.symCountsIfCompressed_.push_back(symCounts);
   }
 }
 
 void compressImage(anslib::Image inImg, anslib::Image &outImg) {
-  for (auto &plane : inImg.dataPlanes) {
+  for (auto &plane : inImg.dataPlanes_) {
     std::vector<anslib::AnsCountsType> symCounts;
     compressPlane(plane, symCounts, plane);
-    inImg.symCountsIfCompressed.push_back(symCounts);
+    inImg.symCountsIfCompressed_.push_back(symCounts);
   }
   outImg = inImg;
 }
 
 /*inline*/ void decompressImage(anslib::Image inImg) {
-  for (size_t i = 0; i < inImg.dataPlanes.size(); ++i) {
-    decompressPlane(inImg.symCountsIfCompressed.at(i), inImg.dataPlanes.at(i));
+  for (size_t i = 0; i < inImg.dataPlanes_.size(); ++i) {
+    decompressPlane(inImg.symCountsIfCompressed_.at(i),
+                    inImg.dataPlanes_.at(i));
   }
 }
 
@@ -88,20 +91,35 @@ struct FileStats {
   double decodeSpeed_;
   size_t bytesSizeOfImage(const anslib::Image &img) {
     size_t byteSize = 0;
-    for (auto plane : img.dataPlanes) {
+    for (auto plane : img.dataPlanes_) {
       byteSize += plane.size() * sizeof(decltype(plane.back()));
     }
-    byteSize += img.symCountsIfCompressed.size() *
-                sizeof(decltype(img.symCountsIfCompressed.back()));
+    byteSize += img.symCountsIfCompressed_.size() *
+                sizeof(decltype(img.symCountsIfCompressed_.back()));
     return byteSize;
   }
-  FileStats(std::string filename) : filename_(filename) {
-    anslib::bmplib::BmpImage bmp(filename.c_str());
-    anslib::Image imgRaw(bmp);
+
+  FileStats(std::string filePath) {
+    filename_ = filePath.substr(filePath.rfind('/') + 1);
+    anslib::Image imgRaw;
+    if (filePath.rfind(".bmp") != std::string::npos) {
+      anslib::bmplib::BmpImage bmp(filePath.c_str());
+      imgRaw = anslib::Image(bmp);
+      dataSizeRaw_ = bmp.data.size() * sizeof(decltype(bmp.data.back()));
+    } else {
+      anslib::ppmlib::PpmImage raw(filePath.c_str());
+      imgRaw = anslib::Image(raw.r, raw.g, raw.b, raw.width_, raw.height_);
+      dataSizeRaw_ = raw.height_ * raw.width_ * sizeof(decltype(raw.r.back()));
+    }
+
+    dataSizeRaw_ = 0;
+    for (const auto &plane : imgRaw.dataPlanes_) {
+      dataSizeRaw_ += plane.size() * sizeof(decltype(plane.back()));
+    }
+
     anslib::Image imgEncoded(imgRaw);
     compressImage(imgRaw, imgEncoded);
 
-    dataSizeRaw_ = bmp.data.size() * sizeof(decltype(bmp.data.back()));
     dataSizeEnc_ = bytesSizeOfImage(imgEncoded);
     compressionRate_ = (double)dataSizeRaw_ / (double)dataSizeEnc_;
 
@@ -126,16 +144,42 @@ inline std::ostream &operator<<(std::ostream &os, struct FileStats fs) {
   return os;
 }
 
+void writeBenchResultsToCSV(const std::vector<FileStats> &vfs) {
+  std::stringstream buffer;
+  std::ofstream csvFile("compresults.csv", std::ios_base::in);
+  if (!csvFile.good()) {  // if writing to a new file, add header
+    buffer << "Filename;DataSizeRaw;DataSizeEnc;CompressionRate;EncodeTime;"
+              "DecodeTime;EncodeSpeed;DecodeSpeed\n";
+  }
+  csvFile.close();
+  csvFile.open("compresults.csv", std::ios_base::app | std::ios_base::out);
+  for (const auto &fs : vfs) {
+    buffer << fs.filename_ << ';' << fs.dataSizeRaw_ << ';' << fs.dataSizeEnc_
+           << ';' << fs.compressionRate_ << ';' << fs.encodeTime_ << ';'
+           << fs.decodeTime_ << ';' << fs.encodeSpeed_ << ';' << fs.decodeSpeed_
+           << '\n';
+  }
+  csvFile << buffer.rdbuf();
+  csvFile.close();
+}
+
 int main() {
-  std::vector<std::string> testBmps = listAllBmpsInDir(
-      (CMAKE_SOURCE_DIR "/test_images/PHOTO_CD_KODAK/BMP_IMAGES/"));
+  std::vector<std::string> testBmps = listAllImgsInDir(
+      CMAKE_SOURCE_DIR "/test_images/PHOTO_CD_KODAK/BMP_IMAGES/", ".bmp");
   std::vector<FileStats> encodeStats;
+  for (const std::string &filename : testBmps) {
+    break;
+    std::cout << "Processing " << filename << '\n';
+    encodeStats.push_back(FileStats(filename));
+  }
+
+  testBmps = listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/A1/", ".ppm");
   for (const std::string &filename : testBmps) {
     std::cout << "Processing " << filename << '\n';
     encodeStats.push_back(FileStats(filename));
-    break;
   }
   for (auto fs : encodeStats) {
     std::cout << fs;
   }
+  writeBenchResultsToCSV(encodeStats);
 }
