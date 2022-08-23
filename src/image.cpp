@@ -9,7 +9,12 @@ namespace anslib {
 
 bool shiftDClevel(std::vector<AnsSymbol> &inData) { return false; }
 
-Image::Image(ushort bd, ushort planesNum) : bitDepth_(bd), numOfPlanes_(planesNum) {;}
+Image::Image(){};
+
+Image::Image(ushort bd, ushort planesNum)
+    : bitDepth_(bd), numOfPlanes_(planesNum) {
+  ;
+}
 
 Image::Image(const bmplib::BmpImage &img) {
   switch (img.infoHeader_.compression) {
@@ -39,13 +44,25 @@ Image::Image(const bmplib::BmpImage &img) {
   }
 }
 
-Image::Image(const std::vector<AnsSymbol> p1,
-        const std::vector<AnsSymbol> p2,
-        const std::vector<AnsSymbol> p3,
-        size_t wid, size_t hei) : width_(wid), height_(hei) {
-  dataPlanes.push_back(p1);
-  dataPlanes.push_back(p2);
-  dataPlanes.push_back(p3);
+Image::Image(const std::vector<AnsSymbol> p1, const std::vector<AnsSymbol> p2,
+             const std::vector<AnsSymbol> p3, size_t wid, size_t hei)
+    : width_(wid), height_(hei) {
+  dataPlanes_.push_back(p1);
+  dataPlanes_.push_back(p2);
+  dataPlanes_.push_back(p3);
+}
+
+Image &Image::operator=(const Image &r) {
+  if (&r != this) {
+    bitDepth_ = r.bitDepth_;
+    dataPlanes_ = r.dataPlanes_;
+    height_ = r.height_;
+    width_ = r.width_;
+    numOfPlanes_ = r.numOfPlanes_;
+    symCountsIfCompressed_ = r.symCountsIfCompressed_;
+    isAnsCompressed_ = r.isAnsCompressed_;
+  }
+  return *this;
 }
 
 std::vector<uint8_t> Image::getPlanesAsBmpData() {
