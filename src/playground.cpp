@@ -11,13 +11,13 @@ int main() {
   inImg.bmpRead(CMAKE_SOURCE_DIR
                 "/test_images/PHOTO_CD_KODAK/BMP_IMAGES/IMG0002.bmp");
   anslib::Image img(inImg);
-  for (auto &pix : img.dataPlanes.at(0)) {
+  for (auto &pix : img.dataPlanes_.at(0)) {
     pix *= 0.9;
   }
-  for (auto &pix : img.dataPlanes.at(1)) {
+  for (auto &pix : img.dataPlanes_.at(1)) {
     pix *= 0.2;
   }
-  for (auto &pix : img.dataPlanes.at(2)) {
+  for (auto &pix : img.dataPlanes_.at(2)) {
     pix *= 0.4;
   }
   auto bmpData = img.getPlanesAsBmpData();
@@ -40,7 +40,7 @@ int main() {
 
     anslib::Image id(myBmp);
 
-    for (const auto &plane : id.dataPlanes) {
+    for (const auto &plane : id.dataPlanes_) {
       for (const auto &px : plane) {
         std::cout << px + 0 << "\t";
       }

@@ -17,7 +17,7 @@ int main() {
   anslib::Image img(inImg);
 
   int i = 1;
-  for (auto plane : img.dataPlanes) {
+  for (auto plane : img.dataPlanes_) {
     Histogram<uint8_t> h0(plane);
 
     std::vector<long> counts;

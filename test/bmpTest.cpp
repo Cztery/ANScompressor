@@ -59,9 +59,9 @@ TEST(reading_bitmaps, check_red_image) {
                                             myBmp.infoHeader_.dataSize);
   Image id(myBmp);
 
-  EXPECT_EQ(id.dataPlanes.at(2).at(1), 255);
-  EXPECT_EQ(id.dataPlanes.at(1).at(1), 0);
-  EXPECT_EQ(id.dataPlanes.at(0).at(1), 0);
+  EXPECT_EQ(id.dataPlanes_.at(2).at(1), 255);
+  EXPECT_EQ(id.dataPlanes_.at(1).at(1), 0);
+  EXPECT_EQ(id.dataPlanes_.at(0).at(1), 0);
 }
 
 TEST(reading_bitmaps, creating_ans_image) {
@@ -72,22 +72,22 @@ TEST(reading_bitmaps, creating_ans_image) {
   EXPECT_EQ(id.width_, 0x5);
   EXPECT_EQ(id.height_, 0x5);
 
-  EXPECT_EQ(id.dataPlanes.at(0).size(), 25);
-  EXPECT_EQ(id.dataPlanes.at(1).size(), 25);
-  EXPECT_EQ(id.dataPlanes.at(2).size(), 25);
-  EXPECT_EQ(id.dataPlanes.size(), 3);
+  EXPECT_EQ(id.dataPlanes_.at(0).size(), 25);
+  EXPECT_EQ(id.dataPlanes_.at(1).size(), 25);
+  EXPECT_EQ(id.dataPlanes_.at(2).size(), 25);
+  EXPECT_EQ(id.dataPlanes_.size(), 3);
 
-  EXPECT_EQ(id.dataPlanes.at(0).at(10), 0);
-  EXPECT_EQ(id.dataPlanes.at(1).at(10), 0);  // black pixel
-  EXPECT_EQ(id.dataPlanes.at(2).at(10), 0);
+  EXPECT_EQ(id.dataPlanes_.at(0).at(10), 0);
+  EXPECT_EQ(id.dataPlanes_.at(1).at(10), 0);  // black pixel
+  EXPECT_EQ(id.dataPlanes_.at(2).at(10), 0);
   EXPECT_EQ(id[10], std::make_tuple(0, 0, 0));
 
-  EXPECT_EQ(id.dataPlanes.at(0).at(11), 255);
-  EXPECT_EQ(id.dataPlanes.at(1).at(11), 0);  // blue pixel
-  EXPECT_EQ(id.dataPlanes.at(2).at(11), 0);
+  EXPECT_EQ(id.dataPlanes_.at(0).at(11), 255);
+  EXPECT_EQ(id.dataPlanes_.at(1).at(11), 0);  // blue pixel
+  EXPECT_EQ(id.dataPlanes_.at(2).at(11), 0);
   EXPECT_EQ(id[11], std::make_tuple(255, 0, 0));
 
-  EXPECT_EQ(id.dataPlanes.at(0).at(24), 0);
-  EXPECT_EQ(id.dataPlanes.at(1).at(24), 255);  // should be green
-  EXPECT_EQ(id.dataPlanes.at(2).at(24), 0);
+  EXPECT_EQ(id.dataPlanes_.at(0).at(24), 0);
+  EXPECT_EQ(id.dataPlanes_.at(1).at(24), 255);  // should be green
+  EXPECT_EQ(id.dataPlanes_.at(2).at(24), 0);
 }

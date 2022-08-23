@@ -1,4 +1,6 @@
-#include <ansComp.h>
+#pragma once
+
+#include <image.h>
 
 // C B D
 // A X
@@ -8,8 +10,6 @@ anslib::Image predictImg(const anslib::Image &inImg) {
   for (auto p : inImg.dataPlanes)
     for (auto y = 0; y < inImg.height_; ++y) {
       for (auto x = 0; x < inImg.width_; ++x) }
-}
-}
 }
 
 struct Neighbors {

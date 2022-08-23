@@ -25,7 +25,7 @@ Image::Image(const bmplib::BmpImage &img) {
   width_ = img.infoHeader_.width;
   height_ = img.infoHeader_.height;
 
-  dataPlanes.resize(numOfPlanes_, std::vector<AnsSymbol>(width_ * height_, 0));
+  dataPlanes_.resize(numOfPlanes_, std::vector<AnsSymbol>(width_ * height_, 0));
 
   size_t inIndex, outIndex;
   for (size_t row = 0; row < height_; ++row) {
@@ -33,7 +33,7 @@ Image::Image(const bmplib::BmpImage &img) {
       for (auto plane = 0; plane != numOfPlanes_; ++plane) {
         inIndex = img.getPxIndex(row, x, plane);
         outIndex = width_ * row + x;
-        dataPlanes.at(plane).at(outIndex) = img.data.at(inIndex);
+        dataPlanes_.at(plane).at(outIndex) = img.data.at(inIndex);
       }
     }
   }
@@ -62,7 +62,7 @@ std::vector<uint8_t> Image::getPlanesAsBmpData() {
 
   for (size_t row = 0; row < height_; ++row) {
     for (size_t x = 0; x < width_; ++x) {
-      for (auto &plane : dataPlanes) {
+      for (auto &plane : dataPlanes_) {
         outData.emplace_back(plane.at(width_ * (height_ - row - 1) + x));
       }
     }
@@ -70,6 +70,7 @@ std::vector<uint8_t> Image::getPlanesAsBmpData() {
   }
   return outData;
 }
+
 void Image::GBRtoYCbCr() { ; }
 
 }  // namespace anslib

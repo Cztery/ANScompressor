@@ -1,9 +1,9 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "ppmlib.h"
 #include "gtest/gtest.h"
 #include "image.h"
+#include "ppmlib.h"
 
 using namespace anslib;
 using namespace ppmlib;

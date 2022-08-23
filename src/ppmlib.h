@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+
 #include <string>
 #include <vector>
 
@@ -19,5 +20,5 @@ struct PpmImage {
   PpmImage(const char* filename);
 };
 
-}
-}
+}  // namespace ppmlib
+}  // namespace anslib
