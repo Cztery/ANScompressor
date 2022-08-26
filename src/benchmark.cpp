@@ -164,20 +164,27 @@ void writeBenchResultsToCSV(const std::vector<FileStats> &vfs) {
 }
 
 int main() {
-  std::vector<std::string> testBmps = listAllImgsInDir(
-      CMAKE_SOURCE_DIR "/test_images/PHOTO_CD_KODAK/BMP_IMAGES/", ".bmp");
   std::vector<FileStats> encodeStats;
-  for (const std::string &filename : testBmps) {
-    break;
+
+  std::vector<std::string> testImgs = listAllImgsInDir(
+      CMAKE_SOURCE_DIR "/test_images/PHOTO_CD_KODAK/BMP_IMAGES/", ".bmp");
+  for (const std::string &filename : testImgs) {
     std::cout << "Processing " << filename << '\n';
     encodeStats.push_back(FileStats(filename));
   }
 
-  testBmps = listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/A1/", ".ppm");
-  for (const std::string &filename : testBmps) {
+  testImgs = listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/A1/", ".ppm");
+  for (const std::string &filename : testImgs) {
     std::cout << "Processing " << filename << '\n';
     encodeStats.push_back(FileStats(filename));
   }
+
+  testImgs = listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/A2/", ".ppm");
+  for (const std::string &filename : testImgs) {
+    std::cout << "Processing " << filename << '\n';
+    encodeStats.push_back(FileStats(filename));
+  }
+
   for (auto fs : encodeStats) {
     std::cout << fs;
   }
