@@ -6,11 +6,18 @@
 
 namespace anslib {
 
+struct SymbolStats {
+  uint64_t a;     // reciprocal of counts; assuming counts is not more than 32 bits
+  AnsState r;     // (M - counts) needed later to calculate new ANS state
+  AnsState cumul; // cumulative counts needed later for new ANS state, here for data locality
+  uint8_t shift;
+};
+
 class AnsEncoder {
  protected:
   std::vector<AnsSymbol> pixInRawChannel_;
   Histogram<AnsSymbol> hist_;
-  AnsState encodeSym(const AnsSymbol s, const AnsState x);
+  AnsState encodeSym(const AnsSymbol s, const AnsState x, const SymbolStats& symStats);
   AnsState renormState(const AnsState x, std::vector<uint8_t> &stateBuf,
                        const AnsSymbol s);
 

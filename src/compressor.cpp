@@ -73,22 +73,19 @@ AnsDecoder::AnsDecoder(const std::vector<AnsCountsType> &symCounts,
   countCum2sym();
 }
 
-AnsState AnsEncoder::encodeSym(const AnsSymbol s, const AnsState x) {
-  AnsState xTemp = ((x / hist_.counts_norm.at(s)) << PROB_BITS) +
-                   hist_.cumul_norm.at(s) + (x % hist_.counts_norm.at(s));
+AnsState AnsEncoder::encodeSym(const AnsSymbol s, const AnsState x, const SymbolStats& symStats) {
+  AnsState q = ((uint64_t) x * symStats.a) >> symStats.shift;
+  AnsState xTemp = x + symStats.cumul + q * symStats.r;
   return xTemp;
 }
 
 AnsState AnsEncoder::renormState(AnsState x, std::vector<uint8_t> &stateBuf,
                                  const AnsSymbol s) {
-  // AnsState xMax =
-  //     ((STATE_LOWER_BOUND >> PROB_BITS) << 8) * hist_.counts_norm.at(s);
   auto needsRenorm = [&]() {
     return ((x >> (sizeof(AnsState) * 8 - PROB_BITS)) >=
             hist_.counts_norm.at(s));
   };
   while (needsRenorm()) {
-    // while (x >= xMax) {
     stateBuf.push_back(x & 0xff);
     x >>= 8;
   }
@@ -96,12 +93,29 @@ AnsState AnsEncoder::renormState(AnsState x, std::vector<uint8_t> &stateBuf,
 }
 
 std::vector<uint8_t> AnsEncoder::encodePlane(std::vector<AnsSymbol> plane) {
+  std::vector<SymbolStats> enc_stats;
+  for (size_t i = 0; i <= std::numeric_limits<AnsSymbol>::max(); ++i) {
+    SymbolStats stats;
+    if(hist_.counts_norm.at(i)) {
+      uint8_t shift = 0;
+      while (hist_.counts_norm.at(i) > (1u << shift))
+        ++shift;
+      stats.shift = shift + 31;
+      stats.a = ((1ull << stats.shift) + hist_.counts_norm.at(i) - 1) / (uint64_t)hist_.counts_norm.at(i); // reciprocal of counts; assuming counts is not more than 32 bits
+      stats.r = PROB_SCALE - hist_.counts_norm.at(i);             // (M - counts) needed later to calculate new ANS state
+      stats.cumul = hist_.cumul_norm.at(i);                       // cumulative counts needed later for new ANS state, here for data locality
+      enc_stats.push_back(stats);
+    } else {
+      enc_stats.push_back({0,0,0});
+    }
+  }
   std::vector<uint8_t> encoded_states;
   AnsState xTmp = ANS_SIGNATURE;
+
   for (std::vector<AnsSymbol>::reverse_iterator s = plane.rbegin();
        s != plane.rend(); ++s) {
     xTmp = renormState(xTmp, encoded_states, *s);
-    xTmp = encodeSym(*s, xTmp);
+    xTmp = encodeSym(*s, xTmp, enc_stats.at(*s));
   }
   while (xTmp) {
     encoded_states.push_back(xTmp & 0xff);
