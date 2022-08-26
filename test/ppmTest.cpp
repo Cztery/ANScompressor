@@ -9,7 +9,7 @@ using namespace anslib;
 using namespace ppmlib;
 
 TEST(reading_ppms, check_ppm_image_loads_into_image_obj) {
-  struct PpmImage myPpm(CMAKE_SOURCE_DIR "/test_images/A1/im_c_flower-xxl-8");
+  struct PpmImage myPpm(CMAKE_SOURCE_DIR "/test_images/A1/im_c_flower-xxl-8.ppm");
   EXPECT_EQ(myPpm.fileMagic, "P6");
   EXPECT_EQ(myPpm.height_, 4832);
   EXPECT_EQ(myPpm.width_, 7376);
