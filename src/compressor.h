@@ -20,6 +20,7 @@ class AnsEncoder {
   AnsState encodeSym(const AnsSymbol s, const AnsState x, const SymbolStats& symStats);
   AnsState renormState(const AnsState x, std::vector<uint8_t> &stateBuf,
                        const AnsSymbol s);
+  std::vector<SymbolStats> prepareEncSymStats();
 
  public:
   AnsEncoder(std::vector<AnsSymbol> pixChannel);

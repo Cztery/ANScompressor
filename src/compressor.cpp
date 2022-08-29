@@ -92,8 +92,8 @@ AnsState AnsEncoder::renormState(AnsState x, std::vector<uint8_t> &stateBuf,
   return x;
 }
 
-std::vector<uint8_t> AnsEncoder::encodePlane(std::vector<AnsSymbol> plane) {
-  std::vector<SymbolStats> enc_stats;
+std::vector<SymbolStats> AnsEncoder::prepareEncSymStats() {
+  std::vector<SymbolStats> encStats;
   for (size_t i = 0; i <= std::numeric_limits<AnsSymbol>::max(); ++i) {
     SymbolStats stats;
     if(hist_.counts_norm.at(i)) {
@@ -104,11 +104,17 @@ std::vector<uint8_t> AnsEncoder::encodePlane(std::vector<AnsSymbol> plane) {
       stats.a = ((1ull << stats.shift) + hist_.counts_norm.at(i) - 1) / (uint64_t)hist_.counts_norm.at(i); // reciprocal of counts; assuming counts is not more than 32 bits
       stats.r = PROB_SCALE - hist_.counts_norm.at(i);             // (M - counts) needed later to calculate new ANS state
       stats.cumul = hist_.cumul_norm.at(i);                       // cumulative counts needed later for new ANS state, here for data locality
-      enc_stats.push_back(stats);
+      encStats.push_back(stats);
     } else {
-      enc_stats.push_back({0,0,0});
+      encStats.push_back({0,0,0});
     }
   }
+  return encStats;
+}
+
+
+std::vector<uint8_t> AnsEncoder::encodePlane(std::vector<AnsSymbol> plane) {
+  std::vector<SymbolStats> enc_stats = prepareEncSymStats();
   std::vector<uint8_t> encoded_states;
   AnsState xTmp = ANS_SIGNATURE;
 
