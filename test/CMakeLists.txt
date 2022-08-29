@@ -23,7 +23,7 @@ target_link_libraries(bmpTest gtest gtest_main pthread bmplib imglib)
 target_link_libraries(ppmTest gtest gtest_main pthread ppmlib imglib)
 # target_link_libraries(colorspacesTest gtest gtest_main pthread colorspaceslib)
 target_link_libraries(histTest gtest gtest_main pthread bmplib imglib)
-target_link_libraries(compressionTest gtest gtest_main pthread bmplib imglib complib)
+target_link_libraries(compressionTest gtest gtest_main pthread ppmlib imglib complib)
 
 gtest_discover_tests(bmpTest)
 gtest_discover_tests(ppmTest)
@@ -37,7 +37,7 @@ add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND}
                             #colorspacesTest
                             histTest
                             compressionTest
-                            --output-on-failure
+                            --output-on-failure -j 4
                         DEPENDS
                             bmpTest
                             ppmTest

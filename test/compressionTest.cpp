@@ -2,14 +2,15 @@
 #include "compressor.h"
 #include "gtest/gtest.h"
 #include "image.h"
+#include "ppmlib.h"
 
 using namespace anslib;
-using namespace bmplib;
+using namespace ppmlib;
 
 Image openTestImg() {
-  BmpImage bmp(CMAKE_SOURCE_DIR
-               "/test_images/PHOTO_CD_KODAK/BMP_IMAGES/IMG0001.bmp");
-  return Image(bmp);
+  PpmImage ppm(CMAKE_SOURCE_DIR
+               "/test_images/A2/e50_a-1200-8.ppm");
+  return Image(ppm.r, ppm.g, ppm.b, ppm.width_, ppm.height_);
 }
 
 class EncoderTest : public AnsEncoder, public testing::Test {
