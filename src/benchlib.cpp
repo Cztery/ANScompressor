@@ -1,4 +1,4 @@
-#include "benchmark.h"
+#include "benchlib.h"
 
 #include <algorithm>
 #include <chrono>
@@ -80,16 +80,7 @@ double getDecodeTime(anslib::Image img) {
   return std::chrono::duration<double>(t2 - t1).count();
 }
 
-struct FileStats {
-  std::string filename_;
-  size_t dataSizeRaw_;
-  size_t dataSizeEnc_;
-  double compressionRate_;
-  double encodeTime_;
-  double decodeTime_;
-  double encodeSpeed_;
-  double decodeSpeed_;
-  size_t bytesSizeOfImage(const anslib::Image &img) {
+size_t FileStats::bytesSizeOfImage(const anslib::Image &img) {
     size_t byteSize = 0;
     for (auto plane : img.dataPlanes_) {
       byteSize += plane.size() * sizeof(decltype(plane.back()));
@@ -99,7 +90,7 @@ struct FileStats {
     return byteSize;
   }
 
-  FileStats(std::string filePath) {
+FileStats::FileStats(std::string filePath) {
     filename_ = filePath.substr(filePath.rfind('/') + 1);
     anslib::Image imgRaw;
     if (filePath.rfind(".bmp") != std::string::npos) {
@@ -129,30 +120,16 @@ struct FileStats {
     encodeSpeed_ = dataSizeRaw_ / encodeTime_ / 1048576;
     decodeSpeed_ = dataSizeRaw_ / decodeTime_ / 1048576;
   }
-};
 
-inline std::ostream &operator<<(std::ostream &os, struct FileStats fs) {
-  os << "++++++\n"
-     << fs.filename_ << '\n'
-     << "dataSizeRaw_:\n\t" << std::right << fs.dataSizeRaw_ / 1024 << "KB\n"
-     << "dataSizeEnc_:\n\t" << std::right << fs.dataSizeEnc_ / 1024 << "KB\n"
-     << "compressionRate_:\n\t" << std::right << fs.compressionRate_ << '\n'
-     << "encodeTime_:\n\t" << std::right << fs.encodeTime_ << "s\n"
-     << "decodeTime_:\n\t" << std::right << fs.decodeTime_ << "s\n"
-     << "encodeSpeed_:\n\t" << std::right << fs.encodeSpeed_ << "MB/s\n"
-     << "decodeSpeed_:\n\t" << std::right << fs.decodeSpeed_ << "MB/s\n";
-  return os;
-}
-
-void writeBenchResultsToCSV(const std::vector<FileStats> &vfs) {
+void writeBenchResultsToCSV(const std::vector<FileStats> &vfs, const char* resultsFileName) {
   std::stringstream buffer;
-  std::ofstream csvFile("compresults.csv", std::ios_base::in);
+  std::ofstream csvFile(resultsFileName, std::ios_base::in);
   if (!csvFile.good()) {  // if writing to a new file, add header
     buffer << "Filename;DataSizeRaw;DataSizeEnc;CompressionRate;EncodeTime;"
               "DecodeTime;EncodeSpeed;DecodeSpeed\n";
   }
   csvFile.close();
-  csvFile.open("compresults.csv", std::ios_base::app | std::ios_base::out);
+  csvFile.open(resultsFileName, std::ios_base::app | std::ios_base::out);
   for (const auto &fs : vfs) {
     buffer << fs.filename_ << ';' << fs.dataSizeRaw_ << ';' << fs.dataSizeEnc_
            << ';' << fs.compressionRate_ << ';' << fs.encodeTime_ << ';'
@@ -163,30 +140,6 @@ void writeBenchResultsToCSV(const std::vector<FileStats> &vfs) {
   csvFile.close();
 }
 
-int main() {
-  std::vector<FileStats> encodeStats;
-
-  std::vector<std::string> testImgs = listAllImgsInDir(
-      CMAKE_SOURCE_DIR "/test_images/PHOTO_CD_KODAK/BMP_IMAGES/", ".bmp");
-  for (const std::string &filename : testImgs) {
-    std::cout << "Processing " << filename << '\n';
-    encodeStats.push_back(FileStats(filename));
-  }
-
-  testImgs = listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/A1/", ".ppm");
-  for (const std::string &filename : testImgs) {
-    std::cout << "Processing " << filename << '\n';
-    encodeStats.push_back(FileStats(filename));
-  }
-
-  testImgs = listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/A2/", ".ppm");
-  for (const std::string &filename : testImgs) {
-    std::cout << "Processing " << filename << '\n';
-    encodeStats.push_back(FileStats(filename));
-  }
-
-  for (auto fs : encodeStats) {
-    std::cout << fs;
-  }
-  writeBenchResultsToCSV(encodeStats);
+void writeBenchResultsToCSV(const std::vector<FileStats> &vfs) {
+  writeBenchResultsToCSV(vfs, "compresults.csv");
 }
