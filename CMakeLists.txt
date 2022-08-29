@@ -25,8 +25,6 @@ if(PACKAGE_TESTS)
     enable_testing()
     include(GoogleTest)
     add_subdirectory(test)
-    set (MAKE_DIRECTORY tests_out)
-    add_test(NAME ansTest COMMAND ansTest)
 endif()
 
 include(CMakeLists_format.cmake)
