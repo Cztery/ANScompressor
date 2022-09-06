@@ -5,8 +5,8 @@
 // C B D
 // A X
 
-anslib::Image predictImg(const anslib::Image &inImg) {
-  anslib::Image outImg(inImg);
+anslib::RawImage predictImg(const anslib::RawImage &inImg) {
+  anslib::RawImage outImg(inImg);
   for (auto p : inImg.dataPlanes)
     for (auto y = 0; y < inImg.height_; ++y) {
       for (auto x = 0; x < inImg.width_; ++x) }

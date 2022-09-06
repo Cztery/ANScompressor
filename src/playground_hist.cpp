@@ -14,7 +14,7 @@ int main() {
                 "/test_images/PHOTO_CD_KODAK/BMP_IMAGES/IMG0001.bmp");
   inImg.bmpWrite("doopa.bmp");
   std::cout << inImg.fileHeader_ << inImg.infoHeader_;
-  anslib::Image img(inImg);
+  anslib::RawImage img(inImg);
 
   int i = 1;
   for (auto plane : img.dataPlanes_) {

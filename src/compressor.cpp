@@ -112,6 +112,47 @@ std::vector<SymbolStats> AnsEncoder::prepareEncSymStats() {
   return encStats;
 }
 
+void AnsEncoder::compressImage(const anslib::RawImage &inImg, anslib::CompImage &outImg) {
+  outImg.width_ = inImg.width_;
+  outImg.height_ = inImg.height_;
+  outImg.numOfPlanes_ = inImg.height_;
+  outImg.chunkWidth_ = inImg.chunkWidth_;
+  outImg.compressedPlanes_.clear();
+  for (auto &plane : inImg.dataPlanes_) {
+    anslib::CompImage::PlaneAndCounts compressedPlane;
+    compressPlane(plane, compressedPlane.counts, compressedPlane.plane);
+    outImg.compressedPlanes_.push_back(compressedPlane);
+  }
+}
+
+void AnsDecoder::decompressPlane(const std::vector<uint8_t> &inData,
+    const std::vector<anslib::AnsCountsType> &sym_counts,
+    std::vector<anslib::AnsSymbol> &outData) {
+  anslib::AnsDecoder decoder(sym_counts, inData);
+  outData = decoder.decodePlane();
+}
+
+void AnsEncoder::compressPlane(const std::vector<anslib::AnsSymbol> &inData,
+                   std::vector<anslib::AnsCountsType> &symCounts,
+                   std::vector<uint8_t> &outData) {
+  anslib::AnsEncoder encoder(inData, symCounts);
+  outData = encoder.encodePlane();
+}
+
+void AnsDecoder::decompressImage(const anslib::CompImage &inImg, anslib::RawImage &outImg) {
+  outImg.width_ = inImg.width_;
+  outImg.height_ = inImg.height_;
+  outImg.numOfPlanes_ = inImg.height_;
+  outImg.chunkWidth_ = inImg.chunkWidth_;
+  outImg.dataPlanes_.clear();
+  for (auto &plane : inImg.compressedPlanes_) {
+    std::vector<anslib::AnsSymbol> rawPlane;
+    decompressPlane(plane.plane,
+                    plane.counts,
+                    rawPlane);
+    outImg.dataPlanes_.push_back(rawPlane);
+  }
+}
 
 std::vector<uint8_t> AnsEncoder::encodePlane(std::vector<AnsSymbol> plane) {
   std::vector<SymbolStats> enc_stats = prepareEncSymStats();
@@ -134,12 +175,12 @@ std::vector<uint8_t> AnsEncoder::encodePlane() {
   return encodePlane(pixInRawChannel_);
 }
 
-AnsEncoder::AnsEncoder(std::vector<AnsSymbol> pixChannel)
+AnsEncoder::AnsEncoder(const std::vector<AnsSymbol> &pixChannel)
     : pixInRawChannel_(pixChannel), hist_(pixChannel) {
   hist_.norm_freqs();
 }
 
-AnsEncoder::AnsEncoder(std::vector<AnsSymbol> pixChannel,
+AnsEncoder::AnsEncoder(const std::vector<AnsSymbol> &pixChannel,
                        std::vector<AnsCountsType> &symCounts)
     : pixInRawChannel_(pixChannel), hist_(pixChannel) {
   hist_.norm_freqs();

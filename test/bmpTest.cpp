@@ -8,8 +8,6 @@
 using namespace anslib;
 using namespace bmplib;
 
-TEST(sample_test_case, sample_test) { EXPECT_EQ(1, 1); }
-
 TEST(reading_bitmaps, throw_on_nonexistent) {
   BmpImage myBmp;
   try {
@@ -57,7 +55,7 @@ TEST(reading_bitmaps, check_red_image) {
   EXPECT_EQ(myBmp.fileHeader_.fileSize, sizeof(myBmp.fileHeader_) +
                                             sizeof(myBmp.infoHeader_) +
                                             myBmp.infoHeader_.dataSize);
-  Image id(myBmp);
+  RawImage id(myBmp);
 
   EXPECT_EQ(id.dataPlanes_.at(2).at(1), 255);
   EXPECT_EQ(id.dataPlanes_.at(1).at(1), 0);
@@ -68,7 +66,7 @@ TEST(reading_bitmaps, creating_ans_image) {
   BmpImage myBmp;
   myBmp.bmpRead(CMAKE_SOURCE_DIR "/test/testimg.bmp");
 
-  Image id(myBmp);
+  RawImage id(myBmp);
   EXPECT_EQ(id.width_, 0x5);
   EXPECT_EQ(id.height_, 0x5);
 

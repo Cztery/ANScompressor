@@ -10,7 +10,7 @@ int main() {
   anslib::bmplib::BmpImage inImg;
   inImg.bmpRead(CMAKE_SOURCE_DIR
                 "/test_images/PHOTO_CD_KODAK/BMP_IMAGES/IMG0002.bmp");
-  anslib::Image img(inImg);
+  anslib::RawImage img(inImg);
   for (auto &pix : img.dataPlanes_.at(0)) {
     pix *= 0.9;
   }
@@ -38,7 +38,7 @@ int main() {
     anslib::bmplib::BmpImage myBmp;
     myBmp.bmpRead(CMAKE_SOURCE_DIR "/test/testimg.bmp");
 
-    anslib::Image id(myBmp);
+    anslib::RawImage id(myBmp);
 
     for (const auto &plane : id.dataPlanes_) {
       for (const auto &px : plane) {

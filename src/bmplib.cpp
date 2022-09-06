@@ -16,7 +16,7 @@ BmpImage::BmpImage(BmpFileHeader fh, BmpInfoHeader ih,
                    const std::vector<uint8_t> &inData)
     : fileHeader_(fh), infoHeader_(ih), data(inData) {
   // add zero padding at the end of the file
-  // so the bmp file converted from Image obj
+  // so the bmp file converted from RawImage obj
   // matches original input bmp
   size_t zeroPadding = fileHeader_.fileSize - sizeof(fileHeader_) -
                        sizeof(infoHeader_) - data.size();

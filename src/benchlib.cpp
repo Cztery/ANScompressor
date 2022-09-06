@@ -22,104 +22,55 @@ std::vector<std::string> listAllImgsInDir(const std::string dir_path,
   return vec_of_filenames;
 }
 
-/*inline*/ void compressPlane(const std::vector<anslib::AnsSymbol> &inData,
-                              std::vector<anslib::AnsCountsType> &symCounts,
-                              std::vector<uint8_t> &outData) {
-  anslib::AnsEncoder encoder(inData, symCounts);
-  outData = encoder.encodePlane();
-}
-
-/*inline*/ void decompressPlane(
-    const std::vector<anslib::AnsCountsType> &sym_counts,
-    std::vector<uint8_t> data) {
-  anslib::AnsDecoder decoder(sym_counts, data);
-}
-
-/*inline*/ void compressImage(anslib::Image inImg) {
-  for (auto &plane : inImg.dataPlanes_) {
-    std::vector<anslib::AnsCountsType> symCounts;
-    compressPlane(plane, symCounts, plane);
-    inImg.symCountsIfCompressed_.push_back(symCounts);
-  }
-}
-
-void compressImage(anslib::Image inImg, anslib::Image &outImg) {
-  for (auto &plane : inImg.dataPlanes_) {
-    std::vector<anslib::AnsCountsType> symCounts;
-    compressPlane(plane, symCounts, plane);
-    inImg.symCountsIfCompressed_.push_back(symCounts);
-  }
-  outImg = inImg;
-}
-
-/*inline*/ void decompressImage(anslib::Image inImg) {
-  for (size_t i = 0; i < inImg.dataPlanes_.size(); ++i) {
-    decompressPlane(inImg.symCountsIfCompressed_.at(i),
-                    inImg.dataPlanes_.at(i));
-  }
-}
-
-float calcCompressionRate(std::vector<uint8_t> &raw,
-                          std::vector<uint8_t> &compressed) {
-  return (float)raw.size() / (float)compressed.size();
-}
-
-double getEncodeTime(anslib::Image img) {
+double getEncodeTime(const anslib::RawImage &img) {
+  anslib::CompImage resultImg;
   std::cout << "Counting encode time...\n";
   std::chrono::time_point t1 = std::chrono::high_resolution_clock::now();
-  compressImage(img);
+  anslib::AnsEncoder::compressImage(img, resultImg);
   std::chrono::time_point t2 = std::chrono::high_resolution_clock::now();
   return std::chrono::duration<double>(t2 - t1).count();
 }
 
-double getDecodeTime(anslib::Image img) {
+double getDecodeTime(const anslib::CompImage &img) {
+  anslib::RawImage resultImg;
   std::cout << "Counting decode time...\n";
   std::chrono::time_point t1 = std::chrono::high_resolution_clock::now();
-  decompressImage(img);
+  anslib::AnsDecoder::decompressImage(img, resultImg);
   std::chrono::time_point t2 = std::chrono::high_resolution_clock::now();
   return std::chrono::duration<double>(t2 - t1).count();
 }
 
-size_t FileStats::bytesSizeOfImage(const anslib::Image &img) {
-    size_t byteSize = 0;
-    for (auto plane : img.dataPlanes_) {
-      byteSize += plane.size() * sizeof(decltype(plane.back()));
-    }
-    byteSize += img.symCountsIfCompressed_.size() *
-                sizeof(decltype(img.symCountsIfCompressed_.back()));
-    return byteSize;
-  }
-
-FileStats::FileStats(std::string filePath) {
-    filename_ = filePath.substr(filePath.rfind('/') + 1);
-    anslib::Image imgRaw;
+anslib::RawImage FileStats::getTestImg(std::string filePath) {
+    imgname_ = filePath.substr(filePath.rfind('/') + 1);
+    anslib::RawImage imgRaw;
     if (filePath.rfind(".bmp") != std::string::npos) {
       anslib::bmplib::BmpImage bmp(filePath.c_str());
-      imgRaw = anslib::Image(bmp);
+      imgRaw = anslib::RawImage(bmp);
       dataSizeRaw_ = bmp.data.size() * sizeof(decltype(bmp.data.back()));
     } else {
       anslib::ppmlib::PpmImage raw(filePath.c_str());
-      imgRaw = anslib::Image(raw.r, raw.g, raw.b, raw.width_, raw.height_);
+      imgRaw = anslib::RawImage(raw.r, raw.g, raw.b, raw.width_, raw.height_);
       dataSizeRaw_ = raw.height_ * raw.width_ * sizeof(decltype(raw.r.back()));
     }
+    return imgRaw;
+}
 
-    dataSizeRaw_ = 0;
-    for (const auto &plane : imgRaw.dataPlanes_) {
-      dataSizeRaw_ += plane.size() * sizeof(decltype(plane.back()));
-    }
+FileStats::FileStats(anslib::RawImage imgRaw) {
+  anslib::CompImage imgEncoded;
+  anslib::AnsEncoder::compressImage(imgRaw, imgEncoded);
 
-    anslib::Image imgEncoded(imgRaw);
-    compressImage(imgRaw, imgEncoded);
+  dataSizeRaw_ = imgRaw.bytesSizeOfImage();
+  dataSizeEnc_ = imgEncoded.bytesSizeOfImage();
+  compressionRate_ = (double)dataSizeRaw_ / (double)dataSizeEnc_;
 
-    dataSizeEnc_ = bytesSizeOfImage(imgEncoded);
-    compressionRate_ = (double)dataSizeRaw_ / (double)dataSizeEnc_;
+  encodeTime_ = getEncodeTime(imgRaw);
+  decodeTime_ = getDecodeTime(imgEncoded);
 
-    encodeTime_ = getEncodeTime(imgRaw);
-    decodeTime_ = getDecodeTime(imgEncoded);
+  encodeSpeed_ = dataSizeRaw_ / encodeTime_ / 1048576;
+  decodeSpeed_ = dataSizeRaw_ / decodeTime_ / 1048576;
+}
 
-    encodeSpeed_ = dataSizeRaw_ / encodeTime_ / 1048576;
-    decodeSpeed_ = dataSizeRaw_ / decodeTime_ / 1048576;
-  }
+FileStats::FileStats(std::string filePath) : FileStats(getTestImg(filePath)) {}
 
 void writeBenchResultsToCSV(const std::vector<FileStats> &vfs, const char* resultsFileName) {
   std::stringstream buffer;
@@ -131,7 +82,7 @@ void writeBenchResultsToCSV(const std::vector<FileStats> &vfs, const char* resul
   csvFile.close();
   csvFile.open(resultsFileName, std::ios_base::app | std::ios_base::out);
   for (const auto &fs : vfs) {
-    buffer << fs.filename_ << ';' << fs.dataSizeRaw_ << ';' << fs.dataSizeEnc_
+    buffer << fs.imgname_ << ';' << fs.dataSizeRaw_ << ';' << fs.dataSizeEnc_
            << ';' << fs.compressionRate_ << ';' << fs.encodeTime_ << ';'
            << fs.decodeTime_ << ';' << fs.encodeSpeed_ << ';' << fs.decodeSpeed_
            << '\n';
