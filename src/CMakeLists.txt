@@ -10,6 +10,7 @@ add_library(ppmlib ppmlib.cpp)
 add_library(imglib image.cpp)
 add_library(complib compressor.cpp)
 add_library(colorspaceslib colorspaces.cpp)
+add_library(common common.cpp)
 add_library(benchlib benchlib.cpp)
 
 add_executable(pg playground.cpp)
@@ -17,18 +18,20 @@ add_executable(hist_pg playground_hist.cpp)
 
 add_executable(bench_all benchmark_all.cpp)
 add_executable(bench_prob_scale bench_prob_scale.cpp)
-target_compile_options(benchlib PRIVATE
-       -Wall -Werror -Wno-error=maybe-uninitialized
-       $<$<CONFIG:RELEASE>:-Ofast>
-)
-
-target_link_libraries(pg PRIVATE bmplib imglib)
-target_link_libraries(imglib PRIVATE bmplib)
-target_link_libraries(hist_pg PRIVATE bmplib imglib python3.10)
-target_link_libraries(benchlib PUBLIC complib bmplib ppmlib imglib)
+# target_compile_options(benchlib PRIVATE
+#        -Wall -Werror -Wno-error=maybe-uninitialized
+#        $<$<CONFIG:RELEASE>:-Ofast>
+# )
+# target_link_options(bench_all PRIVATE "-fpic")
+# add_compile_options(-fpic)
+# target_compile_options(common PRIVATE -fpic)
+target_link_libraries(pg        bmplib imglib)
+target_link_libraries(imglib    PRIVATE common bmplib)
+target_link_libraries(hist_pg   PRIVATE imglib python3.10)
+target_link_libraries(complib   PRIVATE imglib)
+target_link_libraries(benchlib  PRIVATE common complib bmplib ppmlib imglib)
 target_link_libraries(bench_all benchlib)
 target_link_libraries(bench_prob_scale benchlib)
-target_link_libraries(complib imglib)
 target_include_directories(hist_pg PRIVATE /usr/include/python3.10 ${CMAKE_BINARY_DIR}/third_party/matplotlibcpp-src)
 
 include(CheckIPOSupported)
