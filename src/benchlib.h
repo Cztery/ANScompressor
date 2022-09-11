@@ -8,7 +8,6 @@
 #include "common.h"
 #include "image.h"
 
-
 struct FileStats {
   std::string imgname_;
   size_t dataSizeRaw_;
@@ -18,13 +17,14 @@ struct FileStats {
   double decodeTime_;
   double encodeSpeed_;
   double decodeSpeed_;
+  uint8_t prob_bits_;
 
   anslib::RawImage getTestImg(std::string filePath);
   FileStats(anslib::RawImage imgRaw);
   FileStats(std::string filePath);
 };
 
-std::vector<std::string> listAllImgsInDir(const std::string dir_path, const std::string postfix);
+void listAllImgsInDir(const char *dir_path, const char *postfix, std::vector <std::string> &list_to_append);
 
 double getEncodeTime(const anslib::RawImage &img);
 

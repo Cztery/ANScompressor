@@ -4,14 +4,10 @@ int main(int argc, char* argv[]) {
   std::vector<FileStats> encodeStats;
 
   std::vector<std::string> testImgs;
-//   testImgs = listAllImgsInDir(
-//      CMAKE_SOURCE_DIR "/test_images/PHOTO_CD_KODAK/BMP_IMAGES/", ".bmp");
-//   for (const std::string &filename : testImgs) {
-//     std::cout << "Processing " << filename << '\n';
-//     encodeStats.push_back(FileStats(filename));
-//   }
+  listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/PHOTO_CD_KODAK/BMP_IMAGES/", ".bmp", testImgs);
+  listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/A1/", ".ppm", testImgs);
+  listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/A2/", ".ppm", testImgs);
 
-  testImgs = listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/A1/", ".ppm");
   for (const std::string &filename : testImgs) {
     std::cout << "Processing " << filename << '\n';
     encodeStats.push_back(FileStats(filename));
@@ -20,7 +16,6 @@ int main(int argc, char* argv[]) {
   for (auto fs : encodeStats) {
     std::cout << fs;
   }
-
 
   std::string filename;
   if (argc == 2) {

@@ -18,21 +18,20 @@ add_executable(hist_pg playground_hist.cpp)
 
 add_executable(bench_all benchmark_all.cpp)
 add_executable(bench_prob_scale bench_prob_scale.cpp)
-# target_compile_options(benchlib PRIVATE
-#        -Wall -Werror -Wno-error=maybe-uninitialized
-#        $<$<CONFIG:RELEASE>:-Ofast>
-# )
-# target_link_options(bench_all PRIVATE "-fpic")
-# add_compile_options(-fpic)
-# target_compile_options(common PRIVATE -fpic)
+target_compile_options(benchlib PRIVATE
+       -Wall -Werror -Wno-error=maybe-uninitialized
+       $<$<CONFIG:RELEASE>:-Ofast>
+)
+
 target_link_libraries(pg        bmplib imglib)
 target_link_libraries(imglib    PRIVATE common bmplib)
 target_link_libraries(hist_pg   PRIVATE imglib python3.10)
 target_link_libraries(complib   PRIVATE imglib)
 target_link_libraries(benchlib  PRIVATE common complib bmplib ppmlib imglib)
 target_link_libraries(bench_all benchlib)
-target_link_libraries(bench_prob_scale benchlib)
+target_link_libraries(bench_prob_scale benchlib python3.10)
 target_include_directories(hist_pg PRIVATE /usr/include/python3.10 ${CMAKE_BINARY_DIR}/third_party/matplotlibcpp-src)
+target_include_directories(bench_prob_scale PRIVATE /usr/include/python3.10 ${CMAKE_BINARY_DIR}/third_party/matplotlibcpp-src)
 
 include(CheckIPOSupported)
 check_ipo_supported(RESULT ipo_supported)

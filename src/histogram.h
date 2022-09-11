@@ -22,8 +22,6 @@ class Histogram {
   }
 
   void count_cumul() {
-    assert(cumul.size() == counts.size() + 1);
-    assert(cumul.at(0) == 0);
     cumul.at(0) = 0;
     for (size_t i = 0; i < counts.size(); ++i) {
       cumul.at(i + 1) = cumul.at(i) + counts.at(i);
@@ -64,7 +62,6 @@ class Histogram {
             cumul_norm[j]--;
           }
         } else {
-          assert(best_steal_index > i);
           for (size_t j = i + 1; j <= best_steal_index; ++j) {
             cumul_norm[j]++;
           }
