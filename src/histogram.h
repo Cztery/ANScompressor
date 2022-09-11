@@ -43,15 +43,15 @@ class Histogram {
   void norm_freqs(AnsCountsType target_total = PROB_SCALE) {
     // taken from ryg_ans
     cumul_norm = cumul;
-    for (size_t i = 0; i <= counts.size(); ++i) {
+    for (size_t i = 0; i < cumul_norm.size(); ++i) {
       cumul_norm[i] = ((uint64_t)target_total * cumul_norm[i]) / total;
     }
-    for (size_t i = 0; i <= cumul_norm.size(); i++) {
-      if (counts[i] && cumul_norm[i] == cumul_norm[i + 1]) {
+    for (size_t i = 0; i < cumul_norm.size() - 1; i++) {
+      if (counts.at(i) && cumul_norm.at(i) == cumul_norm.at(i + 1)) {
         AnsCountsType best_freq = ~0u;
         size_t best_steal_index = 0;
-        for (size_t j = 0; j <= cumul_norm.size(); ++j) {
-          AnsCountsType freq = cumul_norm[j + 1] - cumul_norm[j];
+        for (size_t j = 0; j < cumul_norm.size() - 1; ++j) {
+          AnsCountsType freq = cumul_norm.at(j + 1) - cumul_norm.at(j);
           if (freq > 1 && freq < best_freq) {
             best_freq = freq;
             best_steal_index = j;

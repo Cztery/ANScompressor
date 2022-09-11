@@ -19,7 +19,7 @@ class HistogramTestFix : public testing::Test {
       v1.push_back(sym);
     }
     h1 = std::make_unique<Histogram<AnsSymbol>>(v1);
-    h1->norm_freqs(255);
+    h1->norm_freqs(256);
 
     std::default_random_engine generator;
     vRand.resize(vRandSize);
