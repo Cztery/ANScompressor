@@ -4,11 +4,12 @@ int main(int argc, char* argv[]) {
   std::vector<FileStats> encodeStats;
 
   std::vector<std::string> testImgs;
-  listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/PHOTO_CD_KODAK/BMP_IMAGES/", ".bmp", testImgs);
+  listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/PHOTO_CD_KODAK/BMP_IMAGES/",
+                   ".bmp", testImgs);
   listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/A1/", ".ppm", testImgs);
   listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/A2/", ".ppm", testImgs);
 
-  for (const std::string &filename : testImgs) {
+  for (const std::string& filename : testImgs) {
     std::cout << "Processing " << filename << '\n';
     encodeStats.push_back(FileStats(filename));
   }

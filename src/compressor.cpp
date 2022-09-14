@@ -73,8 +73,9 @@ AnsDecoder::AnsDecoder(const std::vector<AnsCountsType> &symCounts,
   countCum2sym();
 }
 
-AnsState AnsEncoder::encodeSym(const AnsSymbol s, const AnsState x, const SymbolStats& symStats) {
-  AnsState q = ((uint64_t) x * symStats.a) >> symStats.shift;
+AnsState AnsEncoder::encodeSym(const AnsSymbol s, const AnsState x,
+                               const SymbolStats &symStats) {
+  AnsState q = ((uint64_t)x * symStats.a) >> symStats.shift;
   AnsState xTemp = x + symStats.cumul + q * symStats.r;
   return xTemp;
 }
@@ -96,23 +97,30 @@ std::vector<SymbolStats> AnsEncoder::prepareEncSymStats() {
   std::vector<SymbolStats> encStats;
   for (size_t i = 0; i <= std::numeric_limits<AnsSymbol>::max(); ++i) {
     SymbolStats stats;
-    if(hist_.counts_norm.at(i)) {
+    if (hist_.counts_norm.at(i)) {
       uint8_t shift = 0;
-      while (hist_.counts_norm.at(i) > (1u << shift))
-        ++shift;
+      while (hist_.counts_norm.at(i) > (1u << shift)) ++shift;
       stats.shift = shift + 31;
-      stats.a = ((1ull << stats.shift) + hist_.counts_norm.at(i) - 1) / (uint64_t)hist_.counts_norm.at(i); // reciprocal of counts; assuming counts is not more than 32 bits
-      stats.r = PROB_SCALE - hist_.counts_norm.at(i);             // (M - counts) needed later to calculate new ANS state
-      stats.cumul = hist_.cumul_norm.at(i);                       // cumulative counts needed later for new ANS state, here for data locality
+      stats.a =
+          ((1ull << stats.shift) + hist_.counts_norm.at(i) - 1) /
+          (uint64_t)hist_.counts_norm.at(i);  // reciprocal of counts; assuming
+                                              // counts is not more than 32 bits
+      stats.r = PROB_SCALE -
+                hist_.counts_norm.at(
+                    i);  // (M - counts) needed later to calculate new ANS state
+      stats.cumul =
+          hist_.cumul_norm.at(i);  // cumulative counts needed later for new ANS
+                                   // state, here for data locality
       encStats.push_back(stats);
     } else {
-      encStats.push_back({0,0,0});
+      encStats.push_back({0, 0, 0});
     }
   }
   return encStats;
 }
 
-void AnsEncoder::compressImage(const anslib::RawImage &inImg, anslib::CompImage &outImg) {
+void AnsEncoder::compressImage(const anslib::RawImage &inImg,
+                               anslib::CompImage &outImg) {
   outImg.width_ = inImg.width_;
   outImg.height_ = inImg.height_;
   outImg.numOfPlanes_ = inImg.height_;
@@ -125,7 +133,8 @@ void AnsEncoder::compressImage(const anslib::RawImage &inImg, anslib::CompImage 
   }
 }
 
-void AnsDecoder::decompressPlane(const std::vector<uint8_t> &inData,
+void AnsDecoder::decompressPlane(
+    const std::vector<uint8_t> &inData,
     const std::vector<anslib::AnsCountsType> &sym_counts,
     std::vector<anslib::AnsSymbol> &outData) {
   anslib::AnsDecoder decoder(sym_counts, inData);
@@ -133,13 +142,14 @@ void AnsDecoder::decompressPlane(const std::vector<uint8_t> &inData,
 }
 
 void AnsEncoder::compressPlane(const std::vector<anslib::AnsSymbol> &inData,
-                   std::vector<anslib::AnsCountsType> &symCounts,
-                   std::vector<uint8_t> &outData) {
+                               std::vector<anslib::AnsCountsType> &symCounts,
+                               std::vector<uint8_t> &outData) {
   anslib::AnsEncoder encoder(inData, symCounts);
   outData = encoder.encodePlane();
 }
 
-void AnsDecoder::decompressImage(const anslib::CompImage &inImg, anslib::RawImage &outImg) {
+void AnsDecoder::decompressImage(const anslib::CompImage &inImg,
+                                 anslib::RawImage &outImg) {
   outImg.width_ = inImg.width_;
   outImg.height_ = inImg.height_;
   outImg.numOfPlanes_ = inImg.height_;
@@ -147,9 +157,7 @@ void AnsDecoder::decompressImage(const anslib::CompImage &inImg, anslib::RawImag
   outImg.dataPlanes_.clear();
   for (auto &plane : inImg.compressedPlanes_) {
     std::vector<anslib::AnsSymbol> rawPlane;
-    decompressPlane(plane.plane,
-                    plane.counts,
-                    rawPlane);
+    decompressPlane(plane.plane, plane.counts, rawPlane);
     outImg.dataPlanes_.push_back(rawPlane);
   }
 }

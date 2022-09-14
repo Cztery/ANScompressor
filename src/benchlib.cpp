@@ -10,7 +10,8 @@
 #include "image.h"
 #include "ppmlib.h"
 
-void listAllImgsInDir(const char *dir_path, const char *postfix, std::vector <std::string> &list_to_append) {
+void listAllImgsInDir(const char *dir_path, const char *postfix,
+                      std::vector<std::string> &list_to_append) {
   for (const auto &entry : std::filesystem::directory_iterator(dir_path)) {
     const std::string path = entry.path();
     if (path.find(postfix) != std::string::npos) {
@@ -38,17 +39,17 @@ double getDecodeTime(const anslib::CompImage &img) {
 }
 
 anslib::RawImage FileStats::getTestImg(std::string filePath) {
-    anslib::RawImage imgRaw;
-    if (filePath.rfind(".bmp") != std::string::npos) {
-      anslib::bmplib::BmpImage bmp(filePath.c_str());
-      imgRaw = anslib::RawImage(bmp);
-      dataSizeRaw_ = bmp.data.size() * sizeof(decltype(bmp.data.back()));
-    } else {
-      anslib::ppmlib::PpmImage raw(filePath.c_str());
-      imgRaw = anslib::RawImage(raw.r, raw.g, raw.b, raw.width_, raw.height_);
-      dataSizeRaw_ = raw.height_ * raw.width_ * sizeof(decltype(raw.r.back()));
-    }
-    return imgRaw;
+  anslib::RawImage imgRaw;
+  if (filePath.rfind(".bmp") != std::string::npos) {
+    anslib::bmplib::BmpImage bmp(filePath.c_str());
+    imgRaw = anslib::RawImage(bmp);
+    dataSizeRaw_ = bmp.data.size() * sizeof(decltype(bmp.data.back()));
+  } else {
+    anslib::ppmlib::PpmImage raw(filePath.c_str());
+    imgRaw = anslib::RawImage(raw.r, raw.g, raw.b, raw.width_, raw.height_);
+    dataSizeRaw_ = raw.height_ * raw.width_ * sizeof(decltype(raw.r.back()));
+  }
+  return imgRaw;
 }
 
 FileStats::FileStats(anslib::RawImage imgRaw) {
@@ -71,7 +72,8 @@ FileStats::FileStats(std::string filePath) : FileStats(getTestImg(filePath)) {
   imgname_ = filePath.substr(filePath.rfind('/') + 1);
 }
 
-void writeBenchResultsToCSV(const std::vector<FileStats> &vfs, const char* resultsFileName) {
+void writeBenchResultsToCSV(const std::vector<FileStats> &vfs,
+                            const char *resultsFileName) {
   std::stringstream buffer;
   std::ofstream csvFile(resultsFileName, std::ios_base::in);
   if (!csvFile.good()) {  // if writing to a new file, add header

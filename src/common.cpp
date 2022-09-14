@@ -1,5 +1,6 @@
-#include <cstdint>
 #include "common.h"
+
+#include <cstdint>
 namespace anslib {
 uint32_t PROB_BITS = 14u;
 uint32_t PROB_SCALE = 1u << PROB_BITS;

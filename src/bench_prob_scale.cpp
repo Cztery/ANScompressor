@@ -1,21 +1,22 @@
+#include <map>
+#include <set>
+
 #include "benchlib.h"
 #include "common.h"
 #include "image.h"
-#include "ppmlib.h"
 #include "matplotlibcpp.h"
-
-#include <set>
-#include <map>
+#include "ppmlib.h"
 
 namespace plt = matplotlibcpp;
 
 void plotSpeedToProbScale(const std::vector<FileStats> &fss) {
-  std::set <int> xBits;
+  std::set<int> xBits;
   std::map<std::string, std::map<int, long>> ySpeedsByImg;
   for (const auto &fs : fss) {
     xBits.insert(fs.prob_bits_);
     ySpeedsByImg.try_emplace(fs.imgname_, std::map<int, long>());
-    ySpeedsByImg.at(fs.imgname_).try_emplace(fs.prob_bits_, fs.encodeSpeed_ * 1024);
+    ySpeedsByImg.at(fs.imgname_)
+        .try_emplace(fs.prob_bits_, fs.encodeSpeed_ * 1024);
   }
 
   std::vector<int> x(xBits.begin(), xBits.end());
@@ -30,7 +31,7 @@ void plotSpeedToProbScale(const std::vector<FileStats> &fss) {
   }
 
   for (auto imgStats : ySpeedsByImg) {
-    std::vector <long> y = {};
+    std::vector<long> y = {};
     for (auto stat : imgStats.second) {
       y.push_back(stat.second);
     }
@@ -43,12 +44,13 @@ void plotSpeedToProbScale(const std::vector<FileStats> &fss) {
 }
 
 void plotCompRateToProbScale(const std::vector<FileStats> &fss) {
-  std::set <int> xBits;
+  std::set<int> xBits;
   std::map<std::string, std::map<int, long>> yRatesByImg;
   for (const auto &fs : fss) {
     xBits.insert(fs.prob_bits_);
     yRatesByImg.try_emplace(fs.imgname_, std::map<int, long>());
-    yRatesByImg.at(fs.imgname_).try_emplace(fs.prob_bits_, fs.compressionRate_ * 1024);
+    yRatesByImg.at(fs.imgname_)
+        .try_emplace(fs.prob_bits_, fs.compressionRate_ * 1024);
   }
 
   std::vector<int> x(xBits.begin(), xBits.end());
@@ -63,7 +65,7 @@ void plotCompRateToProbScale(const std::vector<FileStats> &fss) {
   }
 
   for (auto imgStats : yRatesByImg) {
-    std::vector <long> y = {};
+    std::vector<long> y = {};
     for (auto stat : imgStats.second) {
       y.push_back(stat.second);
     }
@@ -75,14 +77,15 @@ void plotCompRateToProbScale(const std::vector<FileStats> &fss) {
   plt::show(false);
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   std::vector<FileStats> encodeStats;
   std::vector<std::string> testImgs;
-  listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/PHOTO_CD_KODAK/BMP_IMAGES/", ".bmp", testImgs);
+  listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/PHOTO_CD_KODAK/BMP_IMAGES/",
+                   ".bmp", testImgs);
   listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/A1/", ".ppm", testImgs);
   listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/A2/", ".ppm", testImgs);
 
-  for ( auto imgPath : testImgs) {
+  for (auto imgPath : testImgs) {
     for (uint32_t prob_bits = 8; prob_bits < 15; ++prob_bits) {
       anslib::PROB_BITS = prob_bits;
       anslib::PROB_SCALE = 1u << prob_bits;

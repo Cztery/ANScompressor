@@ -17,7 +17,7 @@ class RawImage {
   RawImage(ushort bd, ushort planesNum);
   RawImage(const bmplib::BmpImage &img);
   RawImage(const std::vector<AnsSymbol> p1, const std::vector<AnsSymbol> p2,
-        const std::vector<AnsSymbol> p3, size_t wid, size_t hei);
+           const std::vector<AnsSymbol> p3, size_t wid, size_t hei);
 
   size_t bytesSizeOfImage();
   RawImage &operator=(const RawImage &r);
@@ -26,12 +26,13 @@ class RawImage {
   std::vector<std::vector<AnsSymbol>> dataPlanes_;
   uint8_t bitDepth_ = 24;
   uint8_t numOfPlanes_ = 0;
-  // Image can be partitioned into chunks for further computation - prediction and compression;
-  // width of square chunks if image was partitioned; 
+  // Image can be partitioned into chunks for further computation - prediction
+  // and compression; width of square chunks if image was partitioned;
   uint8_t chunkWidth_ = 0;
   inline size_t chunksPerPlaneCount() {
     if (chunkWidth_) {
-      return ((width_ + chunkWidth_ - 1) / chunkWidth_ * (height_ + chunkWidth_ - 1) / chunkWidth_);
+      return ((width_ + chunkWidth_ - 1) / chunkWidth_ *
+              (height_ + chunkWidth_ - 1) / chunkWidth_);
     }
     return 0;
   }
@@ -44,7 +45,6 @@ class RawImage {
   std::vector<uint8_t> getPlanesAsBmpData();
   void splitIntoChunks(size_t chunkSize);
 };
-
 
 class CompImage {
  public:

@@ -8,8 +8,7 @@ using namespace anslib;
 using namespace ppmlib;
 
 RawImage openTestImg() {
-  PpmImage ppm(CMAKE_SOURCE_DIR
-               "/test_images/A2/e50_a-1200-8.ppm");
+  PpmImage ppm(CMAKE_SOURCE_DIR "/test_images/A2/e50_a-1200-8.ppm");
   return RawImage(ppm.r, ppm.g, ppm.b, ppm.width_, ppm.height_);
 }
 

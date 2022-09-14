@@ -24,13 +24,15 @@ struct FileStats {
   FileStats(std::string filePath);
 };
 
-void listAllImgsInDir(const char *dir_path, const char *postfix, std::vector <std::string> &list_to_append);
+void listAllImgsInDir(const char *dir_path, const char *postfix,
+                      std::vector<std::string> &list_to_append);
 
 double getEncodeTime(const anslib::RawImage &img);
 
 double getDecodeTime(const anslib::CompImage &img);
 
-void writeBenchResultsToCSV(const std::vector<FileStats> &vfs, const char* resultsFileName);
+void writeBenchResultsToCSV(const std::vector<FileStats> &vfs,
+                            const char *resultsFileName);
 
 void writeBenchResultsToCSV(const std::vector<FileStats> &vfs);
 

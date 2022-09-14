@@ -44,8 +44,9 @@ RawImage::RawImage(const bmplib::BmpImage &img) {
   }
 }
 
-RawImage::RawImage(const std::vector<AnsSymbol> p1, const std::vector<AnsSymbol> p2,
-             const std::vector<AnsSymbol> p3, size_t wid, size_t hei)
+RawImage::RawImage(const std::vector<AnsSymbol> p1,
+                   const std::vector<AnsSymbol> p2,
+                   const std::vector<AnsSymbol> p3, size_t wid, size_t hei)
     : width_(wid), height_(hei) {
   dataPlanes_.push_back(p1);
   dataPlanes_.push_back(p2);
@@ -104,15 +105,17 @@ std::vector<uint8_t> RawImage::getPlanesAsBmpData() {
 }
 
 void RawImage::splitIntoChunks(size_t chunkSize) {
-  const size_t chunksXcount = width_/chunkSize;
-  const size_t chunksYcount = height_/chunkSize;
-  std::vector<std::vector<anslib::AnsSymbol>> chunks;//(height_/chunkSize * width_/chunkSize);
+  const size_t chunksXcount = width_ / chunkSize;
+  const size_t chunksYcount = height_ / chunkSize;
+  std::vector<std::vector<anslib::AnsSymbol>>
+      chunks;  //(height_/chunkSize * width_/chunkSize);
   for (auto &plane : dataPlanes_) {
     for (size_t w = 0; w < chunksXcount; ++w) {
       for (size_t h = 0; h < chunksYcount; ++h) {
-        std::vector<anslib::AnsSymbol> chunk(chunkSize*chunkSize);
-        for (size_t i = 0; i <= chunkSize*chunkSize; ++i) {
-          chunk.push_back(plane.at((i / chunkSize + h * chunkSize) * width_ + i % chunkSize + w * chunkSize));
+        std::vector<anslib::AnsSymbol> chunk(chunkSize * chunkSize);
+        for (size_t i = 0; i <= chunkSize * chunkSize; ++i) {
+          chunk.push_back(plane.at((i / chunkSize + h * chunkSize) * width_ +
+                                   i % chunkSize + w * chunkSize));
         }
         chunks.push_back(chunk);
       }
@@ -121,6 +124,6 @@ void RawImage::splitIntoChunks(size_t chunkSize) {
   dataPlanes_ = chunks;
 }
 
-CompImage::CompImage() {};
+CompImage::CompImage(){};
 
 }  // namespace anslib
