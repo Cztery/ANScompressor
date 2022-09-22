@@ -65,7 +65,7 @@ FileStats::FileStats(anslib::RawImage imgRaw) {
 
   encodeSpeed_ = dataSizeRaw_ / encodeTime_ / 1048576;
   decodeSpeed_ = dataSizeRaw_ / decodeTime_ / 1048576;
-  prob_bits_ = anslib::PROB_BITS;
+  probBits_ = anslib::PROB_BITS;
 }
 
 FileStats::FileStats(std::string filePath) : FileStats(getTestImg(filePath)) {
@@ -88,6 +88,34 @@ void writeBenchResultsToCSV(const std::vector<FileStats> &vfs,
            << fs.decodeTime_ << ';' << fs.encodeSpeed_ << ';' << fs.decodeSpeed_
            << '\n';
   }
+  csvFile << buffer.rdbuf();
+  csvFile.close();
+}
+
+void writeBenchResultsToJSON(const std::vector<FileStats> &vfs,
+                            const char *resultsFileName) {
+  std::stringstream buffer;
+  std::ofstream csvFile(resultsFileName, std::ios_base::out);
+  buffer << "[\n";
+  for (auto i = vfs.size(); const auto &fs : vfs) {
+    buffer << "{\n"
+           << "\"imgname\": \""   << fs.imgname_      << "\",\n"
+           << "\"dataSizeRaw\": " << fs.dataSizeRaw_  << ",\n"
+           << "\"dataSizeEnc\": " << fs.dataSizeEnc_  << ",\n"
+           << "\"compressionRate\": " << fs.compressionRate_  << ",\n"
+           << "\"encodeTime\": "  << fs.encodeTime_ << ",\n"
+           << "\"decodeTime\": "  << fs.decodeTime_ << ",\n"
+           << "\"encodeSpeed\": "  << fs.encodeSpeed_ << ",\n"
+           << "\"decodeSpeed\": "  << fs.decodeSpeed_ << ",\n"
+           << "\"probBits\": "  << fs.probBits_ << "\n"
+           << "}";
+    if (--i == 0) {
+      buffer << "\n";
+    } else {
+      buffer << ",\n";
+    }
+  }
+  buffer << "]"; 
   csvFile << buffer.rdbuf();
   csvFile.close();
 }

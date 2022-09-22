@@ -17,7 +17,7 @@ struct FileStats {
   double decodeTime_;
   double encodeSpeed_;
   double decodeSpeed_;
-  uint8_t prob_bits_;
+  ushort probBits_;
 
   anslib::RawImage getTestImg(std::string filePath);
   FileStats(anslib::RawImage imgRaw);
@@ -36,6 +36,9 @@ void writeBenchResultsToCSV(const std::vector<FileStats> &vfs,
 
 void writeBenchResultsToCSV(const std::vector<FileStats> &vfs);
 
+void writeBenchResultsToJSON(const std::vector<FileStats> &vfs,
+                            const char *resultsFileName);
+
 inline std::ostream &operator<<(std::ostream &os, struct FileStats fs) {
   os << "++++++\n"
      << fs.imgname_ << '\n'
@@ -45,6 +48,7 @@ inline std::ostream &operator<<(std::ostream &os, struct FileStats fs) {
      << "encodeTime_:\n\t" << std::right << fs.encodeTime_ << "s\n"
      << "decodeTime_:\n\t" << std::right << fs.decodeTime_ << "s\n"
      << "encodeSpeed_:\n\t" << std::right << fs.encodeSpeed_ << "MB/s\n"
-     << "decodeSpeed_:\n\t" << std::right << fs.decodeSpeed_ << "MB/s\n";
+     << "decodeSpeed_:\n\t" << std::right << fs.decodeSpeed_ << "MB/s\n"
+     << "probBits_:\n\t" << std::right << fs.probBits_ << "b\n";
   return os;
 }
