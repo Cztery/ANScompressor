@@ -41,17 +41,20 @@ class AnsDecoder {
  protected:
   std::vector<uint8_t> ansInCompressedChannel_;
   Histogram<AnsSymbol> hist_;
+  size_t rawPlaneSize_;
   std::vector<AnsSymbol> cum2sym_;
   void decodeSymAndAdvanceState(AnsState &x);
   void countCum2sym();
   static void decompressPlane(
       const std::vector<uint8_t> &inData,
       const std::vector<anslib::AnsCountsType> &sym_counts,
+      size_t rawPlaneSize,
       std::vector<anslib::AnsSymbol> &outData);
 
  public:
   AnsDecoder(const std::vector<AnsCountsType> &symCounts,
-             const std::vector<uint8_t> &ansStateBytes);
+             const std::vector<uint8_t> &ansStateBytes,
+             size_t rawPlaneSize);
   ~AnsDecoder(){};
   static void decompressImage(const anslib::CompImage &inImg,
                               anslib::RawImage &outImg);

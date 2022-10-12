@@ -18,9 +18,10 @@ struct FileStats {
   double encodeSpeed_;
   double decodeSpeed_;
   ushort probBits_;
+  size_t chunkSize_;
 
-  anslib::RawImage getTestImg(std::string filePath);
-  FileStats(anslib::RawImage imgRaw);
+  static anslib::RawImage getTestImg(std::string filePath);
+  FileStats(anslib::RawImage imgRaw, std::string imgname);
   FileStats(std::string filePath);
 };
 
@@ -49,6 +50,7 @@ inline std::ostream &operator<<(std::ostream &os, struct FileStats fs) {
      << "decodeTime_:\n\t" << std::right << fs.decodeTime_ << "s\n"
      << "encodeSpeed_:\n\t" << std::right << fs.encodeSpeed_ << "MB/s\n"
      << "decodeSpeed_:\n\t" << std::right << fs.decodeSpeed_ << "MB/s\n"
-     << "probBits_:\n\t" << std::right << fs.probBits_ << "b\n";
+     << "probBits_:\n\t" << std::right << fs.probBits_ << "b\n"
+     << "chunkSize_:\n\t" << std::right << fs.chunkSize_ << "\n";
   return os;
 }

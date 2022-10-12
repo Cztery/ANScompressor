@@ -48,7 +48,7 @@ std::vector<AnsSymbol> AnsDecoder::decodePlane(
   // compressedPlane.pop_back();
   AnsSymbol cur_symbol;
   const uint32_t mask = PROB_SCALE - 1;
-  while (cur_state != ANS_SIGNATURE) {
+  while (/*cur_state != ANS_SIGNATURE && */decoded_syms.size() < rawPlaneSize_) {
     cur_symbol = cum2sym_.at(cur_state & mask);
     decoded_syms.push_back(cur_symbol);
     cur_state = hist_.counts_norm.at(cur_symbol) * (cur_state >> PROB_BITS) +
@@ -67,8 +67,10 @@ std::vector<AnsSymbol> AnsDecoder::decodePlane() {
 }
 
 AnsDecoder::AnsDecoder(const std::vector<AnsCountsType> &symCounts,
-                       const std::vector<uint8_t> &ansStateBytes)
-    : ansInCompressedChannel_(ansStateBytes), hist_(symCounts) {
+                       const std::vector<uint8_t> &ansStateBytes,
+                       size_t rawPlaneSize)
+    : ansInCompressedChannel_(ansStateBytes), hist_(symCounts),
+      rawPlaneSize_(rawPlaneSize) {
   hist_.norm_freqs();
   countCum2sym();
 }
@@ -129,6 +131,7 @@ void AnsEncoder::compressImage(const anslib::RawImage &inImg,
   for (auto &plane : inImg.dataPlanes_) {
     anslib::CompImage::PlaneAndCounts compressedPlane;
     compressPlane(plane, compressedPlane.counts, compressedPlane.plane);
+    compressedPlane.rawPlaneSize = plane.size();
     outImg.compressedPlanes_.push_back(compressedPlane);
   }
 }
@@ -136,8 +139,9 @@ void AnsEncoder::compressImage(const anslib::RawImage &inImg,
 void AnsDecoder::decompressPlane(
     const std::vector<uint8_t> &inData,
     const std::vector<anslib::AnsCountsType> &sym_counts,
+    size_t rawPlaneSize,
     std::vector<anslib::AnsSymbol> &outData) {
-  anslib::AnsDecoder decoder(sym_counts, inData);
+  anslib::AnsDecoder decoder(sym_counts, inData, rawPlaneSize);
   outData = decoder.decodePlane();
 }
 
@@ -157,7 +161,7 @@ void AnsDecoder::decompressImage(const anslib::CompImage &inImg,
   outImg.dataPlanes_.clear();
   for (auto &plane : inImg.compressedPlanes_) {
     std::vector<anslib::AnsSymbol> rawPlane;
-    decompressPlane(plane.plane, plane.counts, rawPlane);
+    decompressPlane(plane.plane, plane.counts, plane.rawPlaneSize, rawPlane);
     outImg.dataPlanes_.push_back(rawPlane);
   }
 }

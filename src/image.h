@@ -20,7 +20,6 @@ class RawImage {
            const std::vector<AnsSymbol> p3, size_t wid, size_t hei);
 
   size_t bytesSizeOfImage();
-  RawImage &operator=(const RawImage &r);
 
   // either RGB, YCoCg or single gray plane
   std::vector<std::vector<AnsSymbol>> dataPlanes_;
@@ -28,11 +27,11 @@ class RawImage {
   uint8_t numOfPlanes_ = 0;
   // Image can be partitioned into chunks for further computation - prediction
   // and compression; width of square chunks if image was partitioned;
-  uint8_t chunkWidth_ = 0;
+  size_t chunkWidth_ = 0;
   inline size_t chunksPerPlaneCount() {
     if (chunkWidth_) {
-      return ((width_ + chunkWidth_ - 1) / chunkWidth_ *
-              (height_ + chunkWidth_ - 1) / chunkWidth_);
+      return ((width_  / chunkWidth_) *
+              (height_ / chunkWidth_));
     }
     return 0;
   }
@@ -44,6 +43,7 @@ class RawImage {
 
   std::vector<uint8_t> getPlanesAsBmpData();
   void splitIntoChunks(size_t chunkSize);
+  void mergeImageChunks();
 };
 
 class CompImage {
@@ -51,7 +51,8 @@ class CompImage {
   uint16_t width_, height_;
   uint8_t numOfPlanes_;
   uint8_t bitDepth_;
-  uint8_t chunkWidth_;
+  size_t chunkWidth_;
+  size_t rawChannelSize_;
 
   CompImage();
   size_t bytesSizeOfImage();
@@ -59,6 +60,7 @@ class CompImage {
   struct PlaneAndCounts {
     std::vector<uint8_t> plane;
     std::vector<AnsCountsType> counts;
+    size_t rawPlaneSize;
   };
   std::vector<PlaneAndCounts> compressedPlanes_;
 };

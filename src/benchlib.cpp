@@ -43,19 +43,18 @@ anslib::RawImage FileStats::getTestImg(std::string filePath) {
   if (filePath.rfind(".bmp") != std::string::npos) {
     anslib::bmplib::BmpImage bmp(filePath.c_str());
     imgRaw = anslib::RawImage(bmp);
-    dataSizeRaw_ = bmp.data.size() * sizeof(decltype(bmp.data.back()));
   } else {
     anslib::ppmlib::PpmImage raw(filePath.c_str());
     imgRaw = anslib::RawImage(raw.r, raw.g, raw.b, raw.width_, raw.height_);
-    dataSizeRaw_ = raw.height_ * raw.width_ * sizeof(decltype(raw.r.back()));
   }
   return imgRaw;
 }
 
-FileStats::FileStats(anslib::RawImage imgRaw) {
+FileStats::FileStats(anslib::RawImage imgRaw, std::string imgname) {
   anslib::CompImage imgEncoded;
   anslib::AnsEncoder::compressImage(imgRaw, imgEncoded);
 
+  imgname_ = imgname;
   dataSizeRaw_ = imgRaw.bytesSizeOfImage();
   dataSizeEnc_ = imgEncoded.bytesSizeOfImage();
   compressionRate_ = (double)dataSizeRaw_ / (double)dataSizeEnc_;
@@ -66,11 +65,10 @@ FileStats::FileStats(anslib::RawImage imgRaw) {
   encodeSpeed_ = dataSizeRaw_ / encodeTime_ / 1048576;
   decodeSpeed_ = dataSizeRaw_ / decodeTime_ / 1048576;
   probBits_ = anslib::PROB_BITS;
+  chunkSize_ = imgRaw.chunkWidth_;
 }
 
-FileStats::FileStats(std::string filePath) : FileStats(getTestImg(filePath)) {
-  imgname_ = filePath.substr(filePath.rfind('/') + 1);
-}
+FileStats::FileStats(std::string filePath) : FileStats(getTestImg(filePath), filePath.substr(filePath.rfind('/') + 1)) {}
 
 void writeBenchResultsToCSV(const std::vector<FileStats> &vfs,
                             const char *resultsFileName) {
@@ -78,7 +76,7 @@ void writeBenchResultsToCSV(const std::vector<FileStats> &vfs,
   std::ofstream csvFile(resultsFileName, std::ios_base::in);
   if (!csvFile.good()) {  // if writing to a new file, add header
     buffer << "Filename;DataSizeRaw;DataSizeEnc;CompressionRate;EncodeTime;"
-              "DecodeTime;EncodeSpeed;DecodeSpeed\n";
+              "DecodeTime;EncodeSpeed;DecodeSpeed;probBits;chunkSize\n";
   }
   csvFile.close();
   csvFile.open(resultsFileName, std::ios_base::app | std::ios_base::out);
@@ -86,7 +84,7 @@ void writeBenchResultsToCSV(const std::vector<FileStats> &vfs,
     buffer << fs.imgname_ << ';' << fs.dataSizeRaw_ << ';' << fs.dataSizeEnc_
            << ';' << fs.compressionRate_ << ';' << fs.encodeTime_ << ';'
            << fs.decodeTime_ << ';' << fs.encodeSpeed_ << ';' << fs.decodeSpeed_
-           << '\n';
+           << fs.probBits_ << ';' << fs.chunkSize_ << '\n';
   }
   csvFile << buffer.rdbuf();
   csvFile.close();
@@ -107,7 +105,8 @@ void writeBenchResultsToJSON(const std::vector<FileStats> &vfs,
            << "\"decodeTime\": "  << fs.decodeTime_ << ",\n"
            << "\"encodeSpeed\": "  << fs.encodeSpeed_ << ",\n"
            << "\"decodeSpeed\": "  << fs.decodeSpeed_ << ",\n"
-           << "\"probBits\": "  << fs.probBits_ << "\n"
+           << "\"probBits\": "  << fs.probBits_ << ",\n"
+           << "\"chunkSize\": " << fs.chunkSize_ << "\n"
            << "}";
     if (--i == 0) {
       buffer << "\n";
