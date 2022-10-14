@@ -2,8 +2,7 @@ import matplotlib.pyplot as plt
 import json
 import sys
 
-# filename = sys.argv[1]
-filename = "/home/ubu/REPOS/ANScompressor1/build/testjson.json"
+filename = sys.argv[1]
 f = open(filename)
 data = json.load(f)
 

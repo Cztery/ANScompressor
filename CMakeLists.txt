@@ -7,7 +7,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 add_compile_options(
-       -Wall -Werror -Wno-error=maybe-uninitialized
+       -Wall -Werror -Wno-error=maybe-uninitialized -Wpedantic
        $<$<CONFIG:RELEASE>:-Ofast>
        $<$<CONFIG:DEBUG>:-O0>
        $<$<CONFIG:DEBUG>:-ggdb3>

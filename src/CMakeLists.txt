@@ -20,7 +20,6 @@ add_executable(bench_all benchmark_all.cpp)
 add_executable(bench_prob_scale bench_prob_scale.cpp)
 add_executable(bench_chunk_size bench_chunk_size.cpp)
 target_compile_options(benchlib PRIVATE
-       -Wall -Werror -Wno-error=maybe-uninitialized
        $<$<CONFIG:RELEASE>:-Ofast>
 )
 
@@ -32,7 +31,6 @@ target_link_libraries(benchlib  PRIVATE common complib bmplib ppmlib imglib)
 target_link_libraries(bench_all benchlib)
 target_link_libraries(bench_prob_scale benchlib)
 target_link_libraries(bench_chunk_size benchlib)
-target_include_directories(hist_pg PRIVATE /usr/include/python3.10 ${CMAKE_BINARY_DIR}/third_party/matplotlibcpp-src)
 
 include(CheckIPOSupported)
 check_ipo_supported(RESULT ipo_supported)
