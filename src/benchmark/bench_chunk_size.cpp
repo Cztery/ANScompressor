@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
                    ".bmp", testImgs);
   listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/A1/", ".ppm", testImgs);
   listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/A2/", ".ppm", testImgs);
-  // listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/FASTCOMPRESSION_COM/", ".ppm", testImgs);
+  listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/FASTCOMPRESSION_COM/", ".ppm", testImgs);
   // testImgs.push_back("/home/ubu/REPOS/ANScompressor1/test_images/PHOTO_CD_KODAK/BMP_IMAGES/IMG0003.bmp");
   for (auto imgPath : testImgs) {
     for (uint32_t chunk_size = 64; chunk_size <= 512; chunk_size += 64) {
@@ -46,6 +46,6 @@ int main(int argc, char *argv[]) {
     ss << std::put_time(std::localtime(&in_time_t), "cs_%Y-%m-%d_%H-%M");
     resultsFileName = ss.str();
   }
-  writeBenchResultsToCSV(encodeStats, std::string(resultsFileName + "csv").c_str());
+  writeBenchResultsToCSV(encodeStats, std::string(resultsFileName + ".csv").c_str());
   writeBenchResultsToJSON(encodeStats, std::string(resultsFileName + ".json").c_str());
 }

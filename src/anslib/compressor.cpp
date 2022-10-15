@@ -89,7 +89,7 @@ AnsState AnsEncoder::renormState(AnsState x, std::vector<uint8_t> &stateBuf,
             hist_.counts_norm.at(s));
   };
   while (needsRenorm()) {
-    stateBuf.push_back(x & 0xff);
+    stateBuf.emplace_back(x & 0xff);
     x >>= 8;
   }
   return x;
@@ -169,6 +169,7 @@ void AnsDecoder::decompressImage(const anslib::CompImage &inImg,
 std::vector<uint8_t> AnsEncoder::encodePlane(std::vector<AnsSymbol> plane) {
   std::vector<SymbolStats> enc_stats = prepareEncSymStats();
   std::vector<uint8_t> encoded_states;
+  encoded_states.reserve(plane.size() * sizeof(SymbolStats));
   AnsState xTmp = ANS_SIGNATURE;
 
   for (std::vector<AnsSymbol>::reverse_iterator s = plane.rbegin();
@@ -177,7 +178,7 @@ std::vector<uint8_t> AnsEncoder::encodePlane(std::vector<AnsSymbol> plane) {
     xTmp = encodeSym(*s, xTmp, enc_stats.at(*s));
   }
   while (xTmp) {
-    encoded_states.push_back(xTmp & 0xff);
+    encoded_states.emplace_back(xTmp & 0xff);
     xTmp >>= 8;
   }
   return encoded_states;

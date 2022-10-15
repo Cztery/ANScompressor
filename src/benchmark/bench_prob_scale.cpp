@@ -33,6 +33,6 @@ int main(int argc, char *argv[]) {
     ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d_%H-%M");
     filename = ss.str();
   }
-  writeBenchResultsToCSV(encodeStats, std::string(filename + "csv").c_str());
+  writeBenchResultsToCSV(encodeStats, std::string(filename + ".csv").c_str());
   writeBenchResultsToJSON(encodeStats, std::string(filename + ".json").c_str());
 }

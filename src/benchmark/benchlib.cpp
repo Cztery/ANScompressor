@@ -95,7 +95,8 @@ void writeBenchResultsToJSON(const std::vector<FileStats> &vfs,
   std::stringstream buffer;
   std::ofstream csvFile(resultsFileName, std::ios_base::out);
   buffer << "[\n";
-  for (auto i = vfs.size(); const auto &fs : vfs) {
+  auto i = vfs.size();
+  for (const auto &fs : vfs) {
     buffer << "{\n"
            << "\"imgname\": \""   << fs.imgname_      << "\",\n"
            << "\"dataSizeRaw\": " << fs.dataSizeRaw_  << ",\n"
