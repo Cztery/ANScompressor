@@ -28,6 +28,8 @@ struct FileStats {
 void listAllImgsInDir(const char *dir_path, const char *postfix,
                       std::vector<std::string> &list_to_append);
 
+double getEncodeTime(const anslib::RawImage &img, anslib::CompImage &resultImg);
+
 double getEncodeTime(const anslib::RawImage &img);
 
 double getDecodeTime(const anslib::CompImage &img);

@@ -20,13 +20,17 @@ void listAllImgsInDir(const char *dir_path, const char *postfix,
   }
 }
 
-double getEncodeTime(const anslib::RawImage &img) {
-  anslib::CompImage resultImg;
+double getEncodeTime(const anslib::RawImage &img, anslib::CompImage& resultImg) {
   std::cout << "Counting encode time...\n";
   std::chrono::time_point t1 = std::chrono::high_resolution_clock::now();
   anslib::AnsEncoder::compressImage(img, resultImg);
   std::chrono::time_point t2 = std::chrono::high_resolution_clock::now();
   return std::chrono::duration<double>(t2 - t1).count();
+}
+
+double getEncodeTime(const anslib::RawImage &img) {
+  anslib::CompImage resultImg;
+  return getEncodeTime(img, resultImg);
 }
 
 double getDecodeTime(const anslib::CompImage &img) {
@@ -52,14 +56,13 @@ anslib::RawImage FileStats::getTestImg(std::string filePath) {
 
 FileStats::FileStats(anslib::RawImage imgRaw, std::string imgname) {
   anslib::CompImage imgEncoded;
-  anslib::AnsEncoder::compressImage(imgRaw, imgEncoded);
 
   imgname_ = imgname;
   dataSizeRaw_ = imgRaw.bytesSizeOfImage();
   dataSizeEnc_ = imgEncoded.bytesSizeOfImage();
   compressionRate_ = (double)dataSizeRaw_ / (double)dataSizeEnc_;
 
-  encodeTime_ = getEncodeTime(imgRaw);
+  encodeTime_ = getEncodeTime(imgRaw, imgEncoded);
   decodeTime_ = getDecodeTime(imgEncoded);
 
   encodeSpeed_ = dataSizeRaw_ / encodeTime_ / 1048576;
