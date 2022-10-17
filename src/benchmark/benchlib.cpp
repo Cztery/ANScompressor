@@ -59,11 +59,12 @@ FileStats::FileStats(anslib::RawImage imgRaw, std::string imgname) {
 
   imgname_ = imgname;
   dataSizeRaw_ = imgRaw.bytesSizeOfImage();
-  dataSizeEnc_ = imgEncoded.bytesSizeOfImage();
   compressionRate_ = (double)dataSizeRaw_ / (double)dataSizeEnc_;
 
   encodeTime_ = getEncodeTime(imgRaw, imgEncoded);
   decodeTime_ = getDecodeTime(imgEncoded);
+
+  dataSizeEnc_ = imgEncoded.bytesSizeOfImage();
 
   encodeSpeed_ = dataSizeRaw_ / encodeTime_ / 1048576;
   decodeSpeed_ = dataSizeRaw_ / decodeTime_ / 1048576;
