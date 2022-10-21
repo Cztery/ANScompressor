@@ -97,7 +97,7 @@ AnsState AnsEncoder::renormState(AnsState x, std::vector<uint8_t> &stateBuf,
 
 std::vector<SymbolStats> AnsEncoder::prepareEncSymStats() {
   std::vector<SymbolStats> encStats;
-  for (size_t i = 0; i <= std::numeric_limits<AnsSymbol>::max(); ++i) {
+  for (size_t i = 0; i <= anslib::ansMaxSymbol; ++i) {
     SymbolStats stats;
     if (hist_.counts_norm.at(i)) {
       uint8_t shift = 0;
