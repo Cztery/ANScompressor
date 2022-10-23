@@ -94,6 +94,7 @@ std::vector<uint8_t> RawImage::getPlanesAsBmpData() {
 }
 
 void RawImage::splitIntoChunks(size_t chunkSize) {
+  if(chunkSize == 0) return;
   const size_t chunksXcount = width_ / chunkSize;
   const size_t chunksYcount = height_ / chunkSize;
   std::vector<std::vector<anslib::AnsSymbol>>

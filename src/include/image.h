@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <tuple>
 #include <vector>
 
 #include "bmplib.h"
@@ -10,8 +11,7 @@ namespace anslib {
 
 bool shiftDClevel(std::vector<AnsSymbol> &inData);
 
-class RawImage {
- public:
+struct RawImage {
   uint16_t width_, height_;
   RawImage();
   RawImage(ushort bd, ushort planesNum);
@@ -28,7 +28,7 @@ class RawImage {
   // Image can be partitioned into chunks for further computation - prediction
   // and compression; width of square chunks if image was partitioned;
   size_t chunkWidth_ = 0;
-  inline size_t chunksPerPlaneCount() {
+  inline size_t chunksPerPlaneCount() const {
     if (chunkWidth_) {
       return ((width_  / chunkWidth_) *
               (height_ / chunkWidth_));
@@ -46,13 +46,19 @@ class RawImage {
   void mergeImageChunks();
 };
 
-class CompImage {
- public:
+struct CompImage {
   uint16_t width_, height_;
   uint8_t numOfPlanes_;
   uint8_t bitDepth_;
   size_t chunkWidth_;
   size_t rawChannelSize_;
+  size_t chunksPerPlaneCount() const {
+    if (chunkWidth_) {
+      return ((width_  / chunkWidth_) *
+              (height_ / chunkWidth_));
+    }
+    return 0;
+  }
 
   CompImage();
   size_t bytesSizeOfImage();

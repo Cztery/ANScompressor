@@ -75,8 +75,8 @@ class Histogram {
 
   template <typename Y>
   Histogram(std::vector<Y> syms)
-      : counts(std::numeric_limits<T>::max() + 1, 0),
-        cumul(std::numeric_limits<T>::max() + 2, 0) {
+      : counts(ansCountsSize, 0),
+        cumul(ansCumulSize, 0) {
     count_freqs(syms);
     count_cumul();
     maxSymCount = count_max_count();

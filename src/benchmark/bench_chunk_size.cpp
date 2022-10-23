@@ -12,9 +12,8 @@ int main(int argc, char *argv[]) {
   listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/A1/", ".ppm", testImgs);
   listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/A2/", ".ppm", testImgs);
   listAllImgsInDir(CMAKE_SOURCE_DIR "/test_images/FASTCOMPRESSION_COM/", ".ppm", testImgs);
-  // testImgs.push_back("/home/ubu/REPOS/ANScompressor1/test_images/PHOTO_CD_KODAK/BMP_IMAGES/IMG0003.bmp");
   for (auto imgPath : testImgs) {
-    for (uint32_t chunk_size = 64; chunk_size <= 512; chunk_size += 64) {
+    for (uint32_t chunk_size = 0; chunk_size <= 512; chunk_size += 64) {
       anslib::RawImage img = FileStats::getTestImg(imgPath);
       
       img.splitIntoChunks(chunk_size);
