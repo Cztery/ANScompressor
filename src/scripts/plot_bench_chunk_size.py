@@ -36,7 +36,6 @@ def plotPerformanceByProbBits(key) :
     plt.ylabel(key)
     plt.xlabel('chunk width')
     plt.xticks(sorted(probBitsSet), sorted(probBitsSet))
-    plt.legend()
     plt.plot(sorted(probBitsSet), avgYvals, 'r-o', label='average')
 plotPerformanceByProbBits("encodeSpeed")
 plotPerformanceByProbBits("decodeSpeed")

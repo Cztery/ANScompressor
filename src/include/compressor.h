@@ -16,40 +16,40 @@ struct SymbolStats {
 
 class AnsEncoder {
  protected:
-  std::vector<AnsSymbol> pixInRawChannel_;
-  Histogram<AnsSymbol> hist_;
-  AnsState encodeSym(const AnsSymbol s, const AnsState x,
+  std::vector<AnsSymbolType> pixInRawChannel_;
+  Histogram<AnsSymbolType> hist_;
+  AnsState encodeSym(const AnsSymbolType s, const AnsState x,
                      const SymbolStats &symStats);
   AnsState renormState(const AnsState x, std::vector<uint8_t> &stateBuf,
-                       const AnsSymbol s);
+                       const AnsSymbolType s);
   std::vector<SymbolStats> prepareEncSymStats();
-  static void compressPlane(const std::vector<anslib::AnsSymbol> &inData,
+  static void compressPlane(const std::vector<anslib::AnsSymbolType> &inData,
                             std::vector<anslib::AnsCountsType> &symCounts,
                             std::vector<uint8_t> &outData);
 
  public:
-  AnsEncoder(const std::vector<AnsSymbol> &pixChannel);
-  AnsEncoder(const std::vector<AnsSymbol> &pixChannel,
+  AnsEncoder(const std::vector<AnsSymbolType> &pixChannel);
+  AnsEncoder(const std::vector<AnsSymbolType> &pixChannel,
              std::vector<AnsCountsType> &symCounts);
   static void compressImage(const anslib::RawImage &inImg,
                             anslib::CompImage &outImg);
-  std::vector<uint8_t> encodePlane(std::vector<AnsSymbol> rawPlane);
+  std::vector<uint8_t> encodePlane(std::vector<AnsSymbolType> rawPlane);
   std::vector<uint8_t> encodePlane();
 };
 
 class AnsDecoder {
  protected:
   std::vector<uint8_t> ansInCompressedChannel_;
-  Histogram<AnsSymbol> hist_;
+  Histogram<AnsSymbolType> hist_;
   size_t rawPlaneSize_;
-  std::vector<AnsSymbol> cum2sym_;
+  std::vector<AnsSymbolType> cum2sym_;
   void decodeSymAndAdvanceState(AnsState &x);
   void countCum2sym();
   static void decompressPlane(
       const std::vector<uint8_t> &inData,
       const std::vector<anslib::AnsCountsType> &sym_counts,
       size_t rawPlaneSize,
-      std::vector<anslib::AnsSymbol> &outData);
+      std::vector<anslib::AnsSymbolType> &outData);
 
  public:
   AnsDecoder(const std::vector<AnsCountsType> &symCounts,
@@ -58,7 +58,7 @@ class AnsDecoder {
   ~AnsDecoder(){};
   static void decompressImage(const anslib::CompImage &inImg,
                               anslib::RawImage &outImg);
-  std::vector<AnsSymbol> decodePlane(std::vector<uint8_t> compressedPlane);
-  std::vector<AnsSymbol> decodePlane();
+  std::vector<AnsSymbolType> decodePlane(std::vector<uint8_t> compressedPlane);
+  std::vector<AnsSymbolType> decodePlane();
 };
 }  // namespace anslib

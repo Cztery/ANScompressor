@@ -5,13 +5,15 @@
 
 
 namespace anslib {
-typedef uint8_t AnsSymbol;
+typedef uint8_t AnsSymbolType;
 typedef uint32_t AnsState;
 typedef uint32_t AnsCountsType;
+typedef uint8_t AnsCompType;
 
-const size_t ansMaxSymbol = std::numeric_limits<AnsSymbol>::max();
-const size_t ansCountsSize = std::numeric_limits<AnsSymbol>::max() + 1;
-const size_t ansCumulSize = std::numeric_limits<AnsSymbol>::max() + 2;
+const size_t ansMaxSymbol = std::numeric_limits<AnsSymbolType>::max();
+const size_t ansCountsSize = std::numeric_limits<AnsSymbolType>::max() + 1;
+const size_t ansCumulSize = std::numeric_limits<AnsSymbolType>::max() + 2;
+const size_t ansCompTypeSize = std::numeric_limits<AnsSymbolType>::max();
 
 extern uint32_t PROB_BITS;
 extern uint32_t PROB_SCALE;

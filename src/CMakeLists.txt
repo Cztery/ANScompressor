@@ -3,9 +3,9 @@ set(CUDA_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_C_COMPILER gcc)
 
-add_compile_definitions(CMAKE_SOURCE_DIR="${CMAKE_SOURCE_DIR}")
+SET(CMAKE_CXX_FLAGS_RELEASE -O3 -g0)
+SET(CMAKE_CXX_FLAGS_DEBUG -O0 -ggdb3)
 
 include_directories(include)
 add_subdirectory(anslib)

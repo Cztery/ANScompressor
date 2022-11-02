@@ -6,17 +6,17 @@
 
 namespace anslib {
 
-void convertRGB2YCoCg(std::vector<anslib::AnsSymbol> r,
-                      std::vector<anslib::AnsSymbol> g,
-                      std::vector<anslib::AnsSymbol> b,
-                      std::vector<anslib::AnsSymbol> &y,
-                      std::vector<anslib::AnsSymbol> &co,
-                      std::vector<anslib::AnsSymbol> &cg);
+void convertRGB2YCoCg(std::vector<anslib::AnsSymbolType> r,
+                      std::vector<anslib::AnsSymbolType> g,
+                      std::vector<anslib::AnsSymbolType> b,
+                      std::vector<anslib::AnsSymbolType> &y,
+                      std::vector<anslib::AnsSymbolType> &co,
+                      std::vector<anslib::AnsSymbolType> &cg);
 
-void convertYCoCg2RGB(std::vector<anslib::AnsSymbol> y,
-                      std::vector<anslib::AnsSymbol> co,
-                      std::vector<anslib::AnsSymbol> cg,
-                      std::vector<anslib::AnsSymbol> &r,
-                      std::vector<anslib::AnsSymbol> &g,
-                      std::vector<anslib::AnsSymbol> &b);
+void convertYCoCg2RGB(std::vector<anslib::AnsSymbolType> y,
+                      std::vector<anslib::AnsSymbolType> co,
+                      std::vector<anslib::AnsSymbolType> cg,
+                      std::vector<anslib::AnsSymbolType> &r,
+                      std::vector<anslib::AnsSymbolType> &g,
+                      std::vector<anslib::AnsSymbolType> &b);
 }  // namespace anslib

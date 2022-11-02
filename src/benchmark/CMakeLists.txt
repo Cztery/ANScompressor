@@ -6,10 +6,6 @@ add_compile_options(
 
 add_library(benchlib benchlib.cpp)
 
-target_compile_options(benchlib PUBLIC
-       $<$<CONFIG:RELEASE>:-Ofast>
-)
-
 add_executable(bench_all benchmark_all.cpp)
 add_executable(profile_stack benchmark_one.cpp)
 add_executable(bench_prob_scale bench_prob_scale.cpp)

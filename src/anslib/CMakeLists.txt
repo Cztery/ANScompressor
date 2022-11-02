@@ -1,8 +1,3 @@
-add_compile_options(
-    $<$<CONFIG:RELEASE>:-Ofast>
-    $<$<CONFIG:DEBUG>:-O0>
-    $<$<CONFIG:DEBUG>:-ggdb3>
-)
 
 add_library(bmplib bmplib.cpp)
 add_library(ppmlib ppmlib.cpp)
@@ -16,5 +11,5 @@ add_executable(hist_pg playground_hist.cpp)
 
 target_link_libraries(pg        bmplib imglib)
 target_link_libraries(imglib    PRIVATE common bmplib)
-target_link_libraries(hist_pg   PRIVATE imglib python3.10)
+target_link_libraries(hist_pg   PRIVATE imglib)
 target_link_libraries(complib   PRIVATE imglib)
