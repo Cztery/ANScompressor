@@ -53,7 +53,7 @@ RawImage::RawImage(const std::vector<AnsSymbolType> p1,
   dataPlanes_.push_back(p3);
 }
 
-size_t anslib::RawImage::bytesSizeOfImage() {
+size_t anslib::RawImage::bytesSizeOfImage() const {
   size_t byteSize = 0;
   for (auto plane : dataPlanes_) {
     byteSize += plane.size() * sizeof(decltype(plane.back()));
@@ -61,7 +61,7 @@ size_t anslib::RawImage::bytesSizeOfImage() {
   return byteSize;
 }
 
-size_t anslib::CompImage::bytesSizeOfImage() {
+size_t anslib::CompImage::bytesSizeOfImage() const {
   size_t byteSize = 0;
   for (auto plane : compressedPlanes_) {
     byteSize += plane.plane.size() * sizeof(decltype(plane.plane.back()));

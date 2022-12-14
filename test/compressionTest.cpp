@@ -3,7 +3,6 @@
 #include "gtest/gtest.h"
 #include "image.h"
 #include "ppmlib.h"
-#include "bmplib.h"
 
 using namespace anslib;
 using namespace ppmlib;
@@ -23,7 +22,7 @@ TEST_F(EncoderTest, check_data_validity_after_decompression) {
   std::vector<uint8_t> encoded = encodePlane(pixInRawChannel_);
   EXPECT_LT(encoded.size(), openTestImg().dataPlanes_.at(0).size());
   AnsDecoder dec1(hist_.counts, encoded, pixInRawChannel_.size());
-  std::vector<AnsSymbol> decoded = dec1.decodePlane();
+  std::vector<AnsSymbolType> decoded = dec1.decodePlane();
   EXPECT_EQ(decoded.size(), pixInRawChannel_.size());
   EXPECT_EQ(decoded, pixInRawChannel_);
 }

@@ -19,7 +19,7 @@ struct RawImage {
   RawImage(const std::vector<AnsSymbolType> p1, const std::vector<AnsSymbolType> p2,
            const std::vector<AnsSymbolType> p3, size_t wid, size_t hei);
 
-  size_t bytesSizeOfImage();
+  size_t bytesSizeOfImage() const;
 
   // either RGB, YCoCg or single gray plane
   std::vector<std::vector<AnsSymbolType>> dataPlanes_;
@@ -61,7 +61,7 @@ struct CompImage {
   }
 
   CompImage();
-  size_t bytesSizeOfImage();
+  size_t bytesSizeOfImage() const;
 
   struct PlaneAndCounts {
     std::vector<uint8_t> plane;

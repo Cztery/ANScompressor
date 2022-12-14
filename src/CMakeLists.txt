@@ -4,8 +4,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-SET(CMAKE_CXX_FLAGS_RELEASE -O3 -g0)
-SET(CMAKE_CXX_FLAGS_DEBUG -O0 -ggdb3)
+SET(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -Wshadow -Wconversion")
+SET(CMAKE_CXX_FLAGS_RELEASE "-O3 -g0")
+SET(CMAKE_CXX_FLAGS_DEBUG "-O0 -ggdb")
 
 include_directories(include)
 add_subdirectory(anslib)

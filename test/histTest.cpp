@@ -18,25 +18,25 @@ class HistogramTestFix : public testing::Test {
     for (unsigned short sym = 0; sym <= 255; ++sym) {
       v1.push_back(sym);
     }
-    h1 = std::make_unique<Histogram<AnsSymbol>>(v1);
+    h1 = std::make_unique<Histogram<AnsSymbolType>>(v1);
     h1->norm_freqs(256);
 
     std::default_random_engine generator;
     vRand.resize(vRandSize);
     for (auto &sym : vRand) {
-      sym = generator() % (std::numeric_limits<AnsSymbol>::max() + 1);
+      sym = generator() % (std::numeric_limits<AnsSymbolType>::max() + 1);
     }
-    hRand = std::make_unique<Histogram<AnsSymbol>>(vRand);
+    hRand = std::make_unique<Histogram<AnsSymbolType>>(vRand);
     hRand->norm_freqs(exampleNormMax);
   }
 
-  std::vector<AnsSymbol> v1;
-  std::unique_ptr<Histogram<AnsSymbol>> h1;
+  std::vector<AnsSymbolType> v1;
+  std::unique_ptr<Histogram<AnsSymbolType>> h1;
 
   const AnsCountsType exampleNormMax = 1u << 14;
   const size_t vRandSize = 1024;
-  std::vector<AnsSymbol> vRand;
-  std::unique_ptr<Histogram<AnsSymbol>> hRand;
+  std::vector<AnsSymbolType> vRand;
+  std::unique_ptr<Histogram<AnsSymbolType>> hRand;
 };
 
 TEST_F(HistogramTestFix, hist_creation) {
@@ -71,12 +71,12 @@ TEST_F(HistogramTestFix, last_val_of_cumul_after_renorm) {
 }
 
 TEST(HistogramTest, basic_vec_histogram) {
-  std::vector<AnsSymbol> v1{0, 1, 1, 2, 2, 2, 3, 3, 3, 3};
+  std::vector<AnsSymbolType> v1{0, 1, 1, 2, 2, 2, 3, 3, 3, 3};
 
-  Histogram<AnsSymbol> h1(v1);
+  Histogram<AnsSymbolType> h1(v1);
 
   std::vector<AnsCountsType> expectedCounts{1, 2, 3, 4};
-  expectedCounts.resize(std::numeric_limits<AnsSymbol>::max() + 1);
+  expectedCounts.resize(std::numeric_limits<AnsSymbolType>::max() + 1);
 
   EXPECT_EQ(h1.counts, expectedCounts);
   EXPECT_EQ(h1.counts.size(), expectedCounts.size());
