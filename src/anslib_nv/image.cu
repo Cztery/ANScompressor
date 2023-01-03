@@ -87,7 +87,7 @@ ImageDev::~ImageDev() {
 
 __device__ void d_splitIntoChunks(AnsSymbolType *rawChunk,
                                   ChunkingParams cParams,
-                                  ImageDev img) {
+                                  ImageDev *img) {
   const bool isRightEdge = cParams.isRightEdgeMisaligned_ &&
                            (cParams.chunksCountHor_ - 1 == blockIdx.x);
   const bool isBottomEdge = cParams.isBottomEdgeMisaligned_ &&
@@ -99,14 +99,16 @@ __device__ void d_splitIntoChunks(AnsSymbolType *rawChunk,
       isBottomEdge ? cParams.edgeChunkHei_ : cParams.squareChunkWid_;
   if (chunkHei <= threadIdx.y || chunkWid <= threadIdx.x) return;
 
-  const size_t planeOffset = blockIdx.z * img.imgInfo.width_ * img.imgInfo.height_;
+  const size_t planeOffset = blockIdx.z * img->imgInfo.width_ * img->imgInfo.height_;
   const size_t xOffsetOfChunkIn = blockIdx.x * cParams.squareChunkWid_;
   const size_t yOffsetOfChunkIn = blockIdx.y * cParams.squareChunkWid_;
-  const size_t inPlanePixIdx = (yOffsetOfChunkIn + threadIdx.x) * img.imgInfo.width_ +
+  const size_t inPlanePixIdx = (yOffsetOfChunkIn + threadIdx.x) * img->imgInfo.width_ +
                                xOffsetOfChunkIn + threadIdx.x;
 
   rawChunk[threadIdx.x + threadIdx.y * chunkWid] =
-      img.rawChunks[planeOffset + inPlanePixIdx];
+      img->rawChunks[planeOffset + inPlanePixIdx];
+    
+  img->imgInfo.chunkWidth_ = cParams.squareChunkWid_;
 }
 
 __device__ void d_joinChunks(AnsSymbolType *outPlanes, const AnsSymbolType *inChunks,
@@ -139,17 +141,22 @@ __device__ void d_joinChunks(AnsSymbolType *outPlanes, const AnsSymbolType *inCh
 
 __global__ void compressionPipeline(const ChunkingParams &cParams,
       ImageDev *imgInOut) {
-  __shared__ uint8_t sChunkMem[];
+  extern __shared__ uint8_t sChunkMem[];
 
   AnsSymbolType *sRawChunk = sChunkMem;
-  AnsCountsType *sChunkCounts = sChunkMem + cParams.maxChunkSize_;
+  AnsCountsType *sChunkCounts = (AnsCountsType *)(sChunkMem + cParams.maxChunkSize_);
   AnsCountsType *sChunkCumul = sChunkCounts + ansCountsArrSize;
   AnsCompType *sCompressedChunk = (AnsCompType *)sChunkCumul + ansCumulArrSize;
 
-  d_splitIntoChunks(sRawChunk, cParams, imgIn);
+  d_splitIntoChunks(sRawChunk, cParams, imgInOut);
 }
 
 void ImageDev::runCompressionPipeline(size_t chunkWid) {
+  if(!chunkWid) {
+    std::cerr << __FILE__ << " : " << __LINE__ 
+              << "Invalid chunWid, must be a nonzero integer" << std::endl;
+    return;
+  }
   const ChunkingParams cParams(imgInfo, chunkWid);
 
   // 2D block indices correspond to chunk location in plane
@@ -164,11 +171,12 @@ void ImageDev::runCompressionPipeline(size_t chunkWid) {
   ImageDev *imgDevInOut = nullptr;
   CHECK_CUDA_ERROR(cudaMalloc(&imgDevInOut, sizeof(ImageDev)));
   CHECK_CUDA_ERROR(cudaMemcpy(imgDevInOut, this, sizeof(ImageDev),
+                              cudaMemcpyHostToDevice));
   compressionPipeline<<<grid, block, sharedMemSize>>>(cParams, imgDevInOut);
   CHECK_CUDA_ERROR(cudaMemcpy(this, imgDevInOut, sizeof(ImageDev),
                               cudaMemcpyDeviceToHost));
 
-  const size_t compDataSize = 0;
+  size_t compDataSize = 0;
   for (int i = 0; i < cParams.chunksPerPlaneCount_ * imgInfo.numOfPlanes_;
        ++i) {
     compDataSize += compChunksSizes[i];
@@ -176,16 +184,16 @@ void ImageDev::runCompressionPipeline(size_t chunkWid) {
   CHECK_CUDA_ERROR(cudaMalloc(&compChunks, compDataSize));
 }
 
-__global__ void ImageDev::decompressionPipeline(const ChunkingParams &cParams,
+__global__ void decompressionPipeline(const ChunkingParams &cParams,
       ImageDev *imgInOut) {
-  __shared__ uint8_t sChunkMem[];
+  extern __shared__ uint8_t sChunkMem[];
   AnsSymbolType *sRawChunk = sChunkMem;
-  AnsCountsType *sChunkCounts = sChunkMem + cParams.maxChunkSize_;
+  AnsCountsType *sChunkCounts = (AnsCountsType *)(sChunkMem + cParams.maxChunkSize_);
   AnsCountsType *sChunkCumul = sChunkCounts + ansCountsArrSize;
-  AnsCompType *sCompressedChunk = sChunkCumul + ansCumulArrSize;
+  AnsCompType *sCompressedChunk = (AnsCompType *)(sChunkCumul + ansCumulArrSize);
   // decompress
 
-  d_joinChunks(rawChunks, sRawChunk, cParams, imgInfo);
+  d_joinChunks(imgInOut->rawChunks, sRawChunk, cParams, imgInOut->imgInfo);
 }
 
 void ImageDev::runDecompressionPipeline() { 
