@@ -30,7 +30,8 @@ RawImage::RawImage(const bmplib::BmpImage &img) {
   width_ = img.infoHeader_.width;
   height_ = img.infoHeader_.height;
 
-  dataPlanes_.resize(numOfPlanes_, std::vector<AnsSymbolType>(width_ * height_, 0));
+  dataPlanes_.resize(numOfPlanes_,
+                     std::vector<AnsSymbolType>(width_ * height_, 0));
 
   size_t inIndex, outIndex;
   for (size_t row = 0; row < height_; ++row) {
@@ -51,6 +52,7 @@ RawImage::RawImage(const std::vector<AnsSymbolType> p1,
   dataPlanes_.push_back(p1);
   dataPlanes_.push_back(p2);
   dataPlanes_.push_back(p3);
+  numOfPlanes_ = 3;
 }
 
 size_t anslib::RawImage::bytesSizeOfImage() const {
@@ -94,7 +96,7 @@ std::vector<uint8_t> RawImage::getPlanesAsBmpData() {
 }
 
 void RawImage::splitIntoChunks(size_t chunkSize) {
-  if(chunkSize == 0) return;
+  if (chunkSize == 0) return;
   const size_t chunksXcount = width_ / chunkSize;
   const size_t chunksYcount = height_ / chunkSize;
   std::vector<std::vector<anslib::AnsSymbolType>>
@@ -102,12 +104,18 @@ void RawImage::splitIntoChunks(size_t chunkSize) {
   for (auto &plane : dataPlanes_) {
     for (size_t yChunkIdx = 0; yChunkIdx < chunksYcount; ++yChunkIdx) {
       for (size_t xChunkIdx = 0; xChunkIdx < chunksXcount; ++xChunkIdx) {
-        const size_t chunkWid = (xChunkIdx == chunksXcount - 1) ? chunkSize + width_ % chunkSize : chunkSize;
-        const size_t chunkHei = (yChunkIdx == chunksYcount - 1) ? chunkSize + height_ % chunkSize : chunkSize;
+        const size_t chunkWid = (xChunkIdx == chunksXcount - 1)
+                                    ? chunkSize + width_ % chunkSize
+                                    : chunkSize;
+        const size_t chunkHei = (yChunkIdx == chunksYcount - 1)
+                                    ? chunkSize + height_ % chunkSize
+                                    : chunkSize;
         std::vector<anslib::AnsSymbolType> chunk(chunkWid * chunkHei);
-        for (size_t chunkPixIdx = 0; chunkPixIdx < (chunkWid * chunkHei); ++chunkPixIdx) {
-          size_t planePixIdx = (chunkPixIdx / chunkWid + yChunkIdx * chunkSize) * width_ +
-                                   chunkPixIdx % chunkWid + xChunkIdx * chunkSize;
+        for (size_t chunkPixIdx = 0; chunkPixIdx < (chunkWid * chunkHei);
+             ++chunkPixIdx) {
+          size_t planePixIdx =
+              (chunkPixIdx / chunkWid + yChunkIdx * chunkSize) * width_ +
+              chunkPixIdx % chunkWid + xChunkIdx * chunkSize;
           chunk.at(chunkPixIdx) = plane.at(planePixIdx);
         }
         chunks.push_back(chunk);
@@ -122,20 +130,28 @@ void RawImage::mergeImageChunks() {
   const size_t chunksXcount = width_ / chunkWidth_;
   const size_t chunksYcount = height_ / chunkWidth_;
 
-  std::vector<std::vector<anslib::AnsSymbolType>> dataPlanes (
-    numOfPlanes_, std::vector<anslib::AnsSymbolType>(width_ * height_));
+  std::vector<std::vector<anslib::AnsSymbolType>> dataPlanes(
+      numOfPlanes_, std::vector<anslib::AnsSymbolType>(width_ * height_));
 
   for (size_t planeIdx = 0; planeIdx < numOfPlanes_; ++planeIdx) {
     for (size_t yChunkIdx = 0; yChunkIdx < chunksYcount; ++yChunkIdx) {
       for (size_t xChunkIdx = 0; xChunkIdx < chunksXcount; ++xChunkIdx) {
-        const size_t chunkWid = (xChunkIdx == chunksXcount - 1) ? chunkWidth_ + width_ % chunkWidth_ : chunkWidth_;
-        const size_t chunkHei = (yChunkIdx == chunksYcount - 1) ? chunkWidth_ + height_ % chunkWidth_ : chunkWidth_;
+        const size_t chunkWid = (xChunkIdx == chunksXcount - 1)
+                                    ? chunkWidth_ + width_ % chunkWidth_
+                                    : chunkWidth_;
+        const size_t chunkHei = (yChunkIdx == chunksYcount - 1)
+                                    ? chunkWidth_ + height_ % chunkWidth_
+                                    : chunkWidth_;
         // std::vector<anslib::AnsSymbolType> chunk(chunkWid * chunkHei);
-        for (size_t chunkPixIdx = 0; chunkPixIdx < (chunkWid * chunkHei); ++chunkPixIdx) {
-          size_t wholePlanePixIdx = (chunkPixIdx / chunkWid + yChunkIdx * chunkWidth_) * width_ +
-                        chunkPixIdx % chunkWid + xChunkIdx * chunkWidth_;
-          size_t chunkIdx = yChunkIdx * chunksXcount + xChunkIdx + chunksPerPlaneCount() * planeIdx;
-          dataPlanes.at(planeIdx).at(wholePlanePixIdx) = dataPlanes_.at(chunkIdx).at(chunkPixIdx);
+        for (size_t chunkPixIdx = 0; chunkPixIdx < (chunkWid * chunkHei);
+             ++chunkPixIdx) {
+          size_t wholePlanePixIdx =
+              (chunkPixIdx / chunkWid + yChunkIdx * chunkWidth_) * width_ +
+              chunkPixIdx % chunkWid + xChunkIdx * chunkWidth_;
+          size_t chunkIdx = yChunkIdx * chunksXcount + xChunkIdx +
+                            chunksPerPlaneCount() * planeIdx;
+          dataPlanes.at(planeIdx).at(wholePlanePixIdx) =
+              dataPlanes_.at(chunkIdx).at(chunkPixIdx);
         }
       }
     }
