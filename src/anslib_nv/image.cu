@@ -1,3 +1,5 @@
+#include <exception>
+
 #include "common_nv.cuh"
 #include "image.cuh"
 #include "image.h"
@@ -8,17 +10,16 @@ ChunkingParams::ChunkingParams(const ImgInfo &info, size_t chunkWid)
     : squareChunkWid_(chunkWid) {
   isRightEdgeMisaligned_ = info.width_ % chunkWid;
   isBottomEdgeMisaligned_ = info.height_ % chunkWid;
-  chunksCountHor_ = info.width_ / chunkWid;
-  chunksCountVer_ = info.height_ / chunkWid;
+  chunksCountHor_ = (info.width_ + chunkWid - 1) / chunkWid;
+  chunksCountVer_ = (info.height_ + chunkWid - 1) / chunkWid;
   chunksPerPlaneCount_ = chunksCountHor_ * chunksCountVer_;
   totalChunksCount_ = chunksPerPlaneCount_ * info.numOfPlanes_;
-  edgeChunkHei_ = squareChunkWid_ + info.height_ % squareChunkWid_;
-  edgeChunkWid_ = squareChunkWid_ + info.width_ % squareChunkWid_;
-  maxChunkSize_ = edgeChunkWid_ * edgeChunkHei_ * ansSymbolTypeSize;
+  edgeChunkWid_ = info.width_ % squareChunkWid_;
+  edgeChunkHei_ = info.height_ % squareChunkWid_;
 }
 
 ChunkingParams::ChunkingParams(const ImgInfo &info)
-    : ChunkingParams(info, info.chunkWidth_) {};
+    : ChunkingParams(info, info.chunkWidth_){};
 
 ImageDev::ImageDev(const RawImage &ri) {
   printf("constructor called\n");
@@ -28,8 +29,8 @@ ImageDev::ImageDev(const RawImage &ri) {
   imgInfo.numOfChunksPerPlane_ = ri.chunksPerPlaneCount();
   imgInfo.chunkWidth_ = ri.chunkWidth_;
 
-  CHECK_CUDA_ERROR(cudaMalloc(&rawChunks, ri.bytesSizeOfImage()));
-  AnsSymbolType *tmp_chunksPtr = rawChunks;
+  CHECK_CUDA_ERROR(cudaMalloc(&rawChunks_, ri.bytesSizeOfImage()));
+  AnsSymbolType *tmp_chunksPtr = rawChunks_;
   for (auto chunk : ri.dataPlanes_) {
     size_t chunkSizeBytes = chunk.size() * sizeof(AnsSymbolType);
     CHECK_CUDA_ERROR(cudaMemcpy(tmp_chunksPtr, chunk.data(), chunkSizeBytes,
@@ -48,9 +49,9 @@ ImageDev::ImageDev(const CompImage &ci) {
 
   const size_t numOfChunksTotal =
       imgInfo.numOfPlanes_ * imgInfo.numOfChunksPerPlane_;
-  cudaMalloc(&chunkCounts, numOfChunksTotal * ansCountsArrSize);
+  cudaMalloc(&chunkCounts_, numOfChunksTotal * ansCountsArrSize);
 
-  cudaMalloc(&compChunksSizes, numOfChunksTotal * sizeof(size_t));
+  cudaMalloc(&compChunksSizes_, numOfChunksTotal * sizeof(size_t));
   size_t compChunksTotalSize = 0;
   std::vector<size_t> compChunksSizes_tmp;
   for (size_t i = 0; i < ci.compressedPlanes_.size(); ++i) {
@@ -58,14 +59,14 @@ ImageDev::ImageDev(const CompImage &ci) {
     compChunksSizes_tmp.push_back(ci.compressedPlanes_.at(i).plane.size());
   }
 
-  CHECK_CUDA_ERROR(cudaMemcpy(compChunksSizes, compChunksSizes_tmp.data(),
+  CHECK_CUDA_ERROR(cudaMemcpy(compChunksSizes_, compChunksSizes_tmp.data(),
                               compChunksSizes_tmp.size() * sizeof(size_t),
                               cudaMemcpyHostToDevice));
 
   CHECK_CUDA_ERROR(
-      cudaMalloc(&compChunks, compChunksTotalSize * ansCompTypeSize));
+      cudaMalloc(&compChunks_, compChunksTotalSize * ansCompTypeSize));
 
-  AnsCompType *compChunksPtr = compChunks;
+  AnsCompType *compChunksPtr = compChunks_;
   for (size_t i = 0; i < ci.compressedPlanes_.size(); ++i) {
     CHECK_CUDA_ERROR(cudaMemcpy(
         compChunksPtr, ci.compressedPlanes_.at(i).plane.data(),
@@ -78,16 +79,16 @@ ImageDev::~ImageDev() {
   printf("destructor called\n");
 
   // release device-side pointer arrays
-  if (rawChunks) CHECK_CUDA_ERROR(cudaFree(rawChunks));
-  if (compChunks) CHECK_CUDA_ERROR(cudaFree(compChunks));
-  if (chunkCounts) CHECK_CUDA_ERROR(cudaFree(chunkCounts));
-  if (chunkCumul) CHECK_CUDA_ERROR(cudaFree(chunkCumul));
-  if (compChunksSizes) CHECK_CUDA_ERROR(cudaFree(compChunksSizes));
+  if (rawChunks_) CHECK_CUDA_ERROR(cudaFree(rawChunks_));
+  rawChunks_ = nullptr;
+  if (compChunks_) CHECK_CUDA_ERROR(cudaFree(compChunks_));
+  if (chunkCounts_) CHECK_CUDA_ERROR(cudaFree(chunkCounts_));
+  if (chunkCumul_) CHECK_CUDA_ERROR(cudaFree(chunkCumul_));
+  if (compChunksSizes_) CHECK_CUDA_ERROR(cudaFree(compChunksSizes_));
 }
 
 __device__ void d_splitIntoChunks(AnsSymbolType *rawChunk,
-                                  ChunkingParams cParams,
-                                  ImageDev *img) {
+                                  ChunkingParams cParams, ImageDev *img) {
   const bool isRightEdge = cParams.isRightEdgeMisaligned_ &&
                            (cParams.chunksCountHor_ - 1 == blockIdx.x);
   const bool isBottomEdge = cParams.isBottomEdgeMisaligned_ &&
@@ -99,20 +100,32 @@ __device__ void d_splitIntoChunks(AnsSymbolType *rawChunk,
       isBottomEdge ? cParams.edgeChunkHei_ : cParams.squareChunkWid_;
   if (chunkHei <= threadIdx.y || chunkWid <= threadIdx.x) return;
 
-  const size_t planeOffset = blockIdx.z * img->imgInfo.width_ * img->imgInfo.height_;
+  const size_t planeOffset =
+      blockIdx.z * img->imgInfo.width_ * img->imgInfo.height_;
   const size_t xOffsetOfChunkIn = blockIdx.x * cParams.squareChunkWid_;
   const size_t yOffsetOfChunkIn = blockIdx.y * cParams.squareChunkWid_;
-  const size_t inPlanePixIdx = (yOffsetOfChunkIn + threadIdx.x) * img->imgInfo.width_ +
-                               xOffsetOfChunkIn + threadIdx.x;
+  const size_t inPlanePixIdx =
+      (yOffsetOfChunkIn + threadIdx.y) * img->imgInfo.width_ + xOffsetOfChunkIn;
+  __syncthreads();
+  if (threadIdx.x == 0 && threadIdx.y < chunkHei) {
+    memcpy(&rawChunk[threadIdx.y * chunkWid],
+           &img->rawChunks_[planeOffset + inPlanePixIdx],
+           sizeof(anslib::AnsSymbolType) * chunkWid);
+  }
+  // rawChunk[threadIdx.x + threadIdx.y * chunkWid] =
+  //     img->rawChunks_[planeOffset + inPlanePixIdx];
 
-  rawChunk[threadIdx.x + threadIdx.y * chunkWid] =
-      img->rawChunks[planeOffset + inPlanePixIdx];
-    
-  img->imgInfo.chunkWidth_ = cParams.squareChunkWid_;
+  // set chunkWidth_ and numOfChunksPerPlane_, only one thread per whole image
+  if (!blockIdx.x && !blockIdx.y && !blockIdx.z && !threadIdx.x &&
+      !threadIdx.y && !threadIdx.z) {
+    img->imgInfo.chunkWidth_ = cParams.squareChunkWid_;
+    img->imgInfo.numOfChunksPerPlane_ = cParams.chunksPerPlaneCount_;
+  }
 }
 
-__device__ void d_joinChunks(AnsSymbolType *outPlanes, const AnsSymbolType *inChunks,
-                             const ChunkingParams cParams, const ImgInfo imgInfo) {
+__device__ void d_joinChunks(AnsSymbolType *outPlanes,
+                             const AnsSymbolType *inChunk,
+                             const ChunkingParams cParams, ImgInfo &imgInfo) {
   const bool isRightEdge = cParams.isRightEdgeMisaligned_ &&
                            (cParams.chunksCountHor_ - 1 == blockIdx.x);
   const bool isBottomEdge = cParams.isBottomEdgeMisaligned_ &&
@@ -133,88 +146,100 @@ __device__ void d_joinChunks(AnsSymbolType *outPlanes, const AnsSymbolType *inCh
   const size_t planeOffset = blockIdx.z * imgInfo.width_ * imgInfo.height_;
   const size_t xOffsetOfChunkOut = blockIdx.x * cParams.squareChunkWid_;
   const size_t yOffsetOfChunkOut = blockIdx.y * cParams.squareChunkWid_;
-  const size_t outPlanePixIdx = (yOffsetOfChunkOut + threadIdx.y) * imgInfo.width_ +
-                                xOffsetOfChunkOut + threadIdx.x;
-  outPlanes[planeOffset + outPlanePixIdx] =
-      inChunks[planeOffset + chunkOffsetOut + chunkVerPosInPlane];
+  const size_t outPlanePixIdx =
+      (yOffsetOfChunkOut + threadIdx.y) * imgInfo.width_ + xOffsetOfChunkOut;
+
+  if (threadIdx.x == 0 && threadIdx.y < chunkHei) {
+    // copy one row per thread, hence only #0 threads in x axis
+    memcpy(&outPlanes[planeOffset + outPlanePixIdx],
+           &inChunk[threadIdx.y * chunkWid],
+           sizeof(anslib::AnsSymbolType) * chunkWid);
+  }
+
+  imgInfo.chunkWidth_ = 0;
+  // outPlanes[planeOffset + outPlanePixIdx] =
+  //     inChunks[planeOffset + chunkOffsetOut + chunkVerPosInPlane];
 }
 
-__global__ void compressionPipeline(const ChunkingParams &cParams,
-      ImageDev *imgInOut) {
+__global__ void compressionPipeline(const ChunkingParams cParams,
+                                    ImageDev *imgInOut) {
   extern __shared__ uint8_t sChunkMem[];
 
   AnsSymbolType *sRawChunk = sChunkMem;
-  AnsCountsType *sChunkCounts = (AnsCountsType *)(sChunkMem + cParams.maxChunkSize_);
+  AnsCountsType *sChunkCounts =
+      (AnsCountsType *)(sChunkMem +
+                        cParams.squareChunkWid_ * cParams.squareChunkWid_);
   AnsCountsType *sChunkCumul = sChunkCounts + ansCountsArrSize;
   AnsCompType *sCompressedChunk = (AnsCompType *)sChunkCumul + ansCumulArrSize;
 
   d_splitIntoChunks(sRawChunk, cParams, imgInOut);
 }
 
-void ImageDev::runCompressionPipeline(size_t chunkWid) {
-  if(!chunkWid) {
-    std::cerr << __FILE__ << " : " << __LINE__ 
-              << "Invalid chunWid, must be a nonzero integer" << std::endl;
-    return;
+ImageDev ImageCompressor::compress(size_t chunkWid) {
+  if (!chunkWid) {
+    throw std::invalid_argument("Provided invalid chunk width (0). Aborting.");
   }
-  const ChunkingParams cParams(imgInfo, chunkWid);
+  const ChunkingParams cParams(img_.imgInfo, chunkWid);
 
   // 2D block indices correspond to chunk location in plane
   dim3 grid(cParams.chunksCountHor_, cParams.chunksCountVer_,
-            imgInfo.numOfPlanes_);
+            img_.imgInfo.numOfPlanes_);
   // 2D thread indices correspond to x and y idx in chunk
-  dim3 block(cParams.edgeChunkWid_, cParams.edgeChunkHei_);
+  const int threadRows = 1024 / cParams.squareChunkWid_;
+  dim3 block(threadRows, cParams.squareChunkWid_);
 
   const size_t sharedMemSize =
-      cParams.maxChunkSize_ * 2 + ansCountsArrSize + ansCumulArrSize;
-
-  ImageDev *imgDevInOut = nullptr;
-  CHECK_CUDA_ERROR(cudaMalloc(&imgDevInOut, sizeof(ImageDev)));
-  CHECK_CUDA_ERROR(cudaMemcpy(imgDevInOut, this, sizeof(ImageDev),
-                              cudaMemcpyHostToDevice));
-  compressionPipeline<<<grid, block, sharedMemSize>>>(cParams, imgDevInOut);
-  CHECK_CUDA_ERROR(cudaMemcpy(this, imgDevInOut, sizeof(ImageDev),
-                              cudaMemcpyDeviceToHost));
-
+      cParams.squareChunkWid_ * cParams.squareChunkWid_ * 2 *
+          sizeof(AnsSymbolType) +
+      (ansCountsArrSize + ansCumulArrSize) * sizeof(AnsCountsType);
+  compressionPipeline<<<grid, block, sharedMemSize>>>(cParams, imgNv_);
+  CHECK_LAST_CUDA_ERROR();
+  ImageDev compImg;
+  CHECK_CUDA_ERROR(
+      cudaMemcpy(&compImg, imgNv_, sizeof(ImageDev), cudaMemcpyDeviceToHost));
   size_t compDataSize = 0;
-  for (int i = 0; i < cParams.chunksPerPlaneCount_ * imgInfo.numOfPlanes_;
+  for (int i = 0; i < cParams.chunksPerPlaneCount_ * img_.imgInfo.numOfPlanes_;
        ++i) {
-    compDataSize += compChunksSizes[i];
+    compDataSize += compImg.compChunksSizes_[i];
   }
-  CHECK_CUDA_ERROR(cudaMalloc(&compChunks, compDataSize));
+  return compImg;
 }
 
-__global__ void decompressionPipeline(const ChunkingParams &cParams,
-      ImageDev *imgInOut) {
+__global__ void decompressionPipeline(const ChunkingParams cParams,
+                                      ImageDev *imgInOut) {
   extern __shared__ uint8_t sChunkMem[];
   AnsSymbolType *sRawChunk = sChunkMem;
-  AnsCountsType *sChunkCounts = (AnsCountsType *)(sChunkMem + cParams.maxChunkSize_);
+  AnsCountsType *sChunkCounts =
+      (AnsCountsType *)(sChunkMem +
+                        cParams.squareChunkWid_ * cParams.squareChunkWid_);
   AnsCountsType *sChunkCumul = sChunkCounts + ansCountsArrSize;
-  AnsCompType *sCompressedChunk = (AnsCompType *)(sChunkCumul + ansCumulArrSize);
+  AnsCompType *sCompressedChunk =
+      (AnsCompType *)(sChunkCumul + ansCumulArrSize);
   // decompress
 
-  d_joinChunks(imgInOut->rawChunks, sRawChunk, cParams, imgInOut->imgInfo);
+  d_joinChunks(imgInOut->rawChunks_, sRawChunk, cParams, imgInOut->imgInfo);
 }
 
-void ImageDev::runDecompressionPipeline() { 
-  const ChunkingParams cParams(imgInfo);
+ImageDev ImageCompressor::decompress() {
+  const ChunkingParams cParams(img_.imgInfo);
 
   // 2D block indices correspond to chunk location in plane
   dim3 grid(cParams.chunksCountHor_, cParams.chunksCountVer_,
-            imgInfo.numOfPlanes_);
+            img_.imgInfo.numOfPlanes_);
   // 2D thread indices correspond to x and y idx in chunk
-  dim3 block(cParams.edgeChunkWid_, cParams.edgeChunkHei_);
+  const int threadRows = 1024 / cParams.squareChunkWid_;
+  dim3 block(threadRows, cParams.squareChunkWid_);
 
   const size_t sharedMemSize =
-      cParams.maxChunkSize_ * 2 + ansCountsArrSize + ansCumulArrSize;
+      cParams.squareChunkWid_ * cParams.squareChunkWid_ * 2 + ansCountsArrSize +
+      ansCumulArrSize;
 
-  ImageDev *imgDevInOut = nullptr;
-  CHECK_CUDA_ERROR(cudaMalloc(&imgDevInOut, sizeof(ImageDev)));
-  CHECK_CUDA_ERROR(cudaMemcpy(imgDevInOut, this, sizeof(ImageDev),
-                              cudaMemcpyHostToDevice));
-  decompressionPipeline<<<grid, block, sharedMemSize>>>(cParams, imgDevInOut);
-  CHECK_CUDA_ERROR(cudaMemcpy(this, imgDevInOut, sizeof(ImageDev),
-                              cudaMemcpyDeviceToHost));
+  decompressionPipeline<<<grid, block, sharedMemSize>>>(cParams, imgNv_);
+  CHECK_LAST_CUDA_ERROR();
+  RawImage rawImg;
+  CHECK_CUDA_ERROR(
+      cudaMemcpy(&rawImg, imgNv_, sizeof(RawImage), cudaMemcpyDeviceToHost));
+  return rawImg;
 }
 
 const std::vector<AnsSymbolType> ImageDev::getPlane(size_t idx) {
@@ -225,11 +250,27 @@ const std::vector<AnsSymbolType> ImageDev::getPlane(size_t idx) {
       imgInfo.width_ * imgInfo.height_ * sizeof(AnsSymbolType);
   AnsSymbolType *planeTmp = (AnsSymbolType *)malloc(planeSize);
   CHECK_CUDA_ERROR(cudaMemcpy(
-      planeTmp, rawChunks + (idx * (imgInfo.width_ * imgInfo.height_)),
+      planeTmp, rawChunks_ + (idx * (imgInfo.width_ * imgInfo.height_)),
       planeSize, cudaMemcpyDeviceToHost));
   std::vector<AnsSymbolType> vec_tmp(
       planeTmp, planeTmp + (imgInfo.height_ * imgInfo.width_));
   return vec_tmp;
+}
+
+ImageCompressor::ImageCompressor(const RawImage &ri) : img_(ri) {
+  CHECK_CUDA_ERROR(cudaMalloc(&imgNv_, sizeof(ImageDev)));
+  CHECK_CUDA_ERROR(
+      cudaMemcpy(imgNv_, &img_, sizeof(ImageDev), cudaMemcpyHostToDevice));
+}
+
+ImageCompressor::ImageCompressor(const CompImage &ci) : img_(ci) {
+  CHECK_CUDA_ERROR(cudaMalloc(&imgNv_, sizeof(ImageDev)));
+  CHECK_CUDA_ERROR(
+      cudaMemcpy(imgNv_, &img_, sizeof(ImageDev), cudaMemcpyHostToDevice));
+}
+
+ImageCompressor::~ImageCompressor() {
+  if (imgNv_) cudaFree(imgNv_);
 }
 
 }  // namespace anslib

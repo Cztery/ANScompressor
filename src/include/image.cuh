@@ -22,18 +22,18 @@ struct ChunkingParams {
   size_t totalChunksCount_;
   size_t edgeChunkHei_;
   size_t edgeChunkWid_;
-  size_t maxChunkSize_;
   ChunkingParams(const ImgInfo &info, size_t chunkWid);
   ChunkingParams(const ImgInfo &info);
 };
 
 struct ImageDev {
-  ImgInfo imgInfo;
-  anslib::AnsSymbolType *rawChunks = nullptr;
-  anslib::AnsCountsType *chunkCounts = nullptr;
-  anslib::AnsCountsType *chunkCumul = nullptr;
-  anslib::AnsCompType *compChunks = nullptr;
-  size_t *compChunksSizes = nullptr;
+  ImgInfo imgInfo = {0, 0, 0, 0, 0};
+  anslib::AnsSymbolType *rawChunks_ = nullptr;
+  anslib::AnsCountsType *chunkCounts_ = nullptr;
+  anslib::AnsCountsType *chunkCumul_ = nullptr;
+  anslib::AnsCompType *compChunks_ = nullptr;
+  size_t *compChunksSizes_ = nullptr;
+  ImageDev(){}
   ImageDev(const anslib::RawImage &ri);
   ImageDev(const anslib::CompImage &ci);
   ~ImageDev();
@@ -41,10 +41,18 @@ struct ImageDev {
   void splitIntoChunks(size_t chunkWid);
   void joinChunks();
 
-  void runCompressionPipeline(size_t chunkWid);
-  void runDecompressionPipeline();
-
   const std::vector<anslib::AnsSymbolType> getPlane(size_t idx);
+};
+
+class ImageCompressor {
+  const ImageDev &img_;
+  ImageDev *imgNv_ = nullptr;
+  public:
+  ImageCompressor(const RawImage &ri);
+  ImageCompressor(const CompImage &ci);
+  ~ImageCompressor();
+  ImageDev compress(size_t chunkWid);
+  ImageDev decompress();
 };
 
 } // namespace anslib
